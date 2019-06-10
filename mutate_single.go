@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/dgraph-io/dgo"
@@ -22,12 +21,10 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph, d inter
 	// Note: We're not saving the upsert uid map, because the user
 	// doesn't need to know these values. They just need to know the
 	// values of the nodes they asked to insert.
-	// failedUIDMap := make(map[string]string)
-	for _, rdf := range upsertRDFs {
-		err := mutate(ctx, dg.NewTxn(), rdf, make(map[string]string), m)
-		if err != nil {
-			return &FailedUpsert{PredMap: upsertMap, RDF: rdf}
-		}
+	err := mutate(ctx, dg.NewTxn(), upsertRDFs, make(map[string]string), m)
+	if err != nil {
+		// return &FailedUpsert{PredMap: upsertMap, RDF: upsertRDFs}
+		return &FailedUpsert{RDF: upsertRDFs}
 	}
 
 	// Get out designated mode for how the UIDs are going to be
@@ -41,7 +38,7 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph, d inter
 	fullRDFs := c.createRDF(mode, fullMap)
 
 	// else mutate the second RDF of nonupsert.
-	err := mutate(ctx, dg.NewTxn(), strings.Join(fullRDFs, "\n"), uidMap, m)
+	err = mutate(ctx, dg.NewTxn(), fullRDFs, uidMap, m)
 	if err != nil {
 		return err
 	}
@@ -51,10 +48,10 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph, d inter
 	return nil
 }
 
-func (c *Client) reflectMaps(d interface{}) (upsert map[string]interface{}, full map[string]interface{}) {
-	upsert = make(map[string]interface{})
-	full = make(map[string]interface{})
+func (c *Client) reflectMaps(d interface{}) (upsert []*predValDat, full []*predValDat) {
 	var elem = reflect.ValueOf(d).Elem()
+	upsert = make([]*predValDat, elem.NumField())
+	full = make([]*predValDat, elem.NumField())
 
 	// loop through elements of struct.
 	for i := 0; i < elem.NumField(); i++ {
@@ -63,10 +60,10 @@ func (c *Client) reflectMaps(d interface{}) (upsert map[string]interface{}, full
 		if c.isUpsert(tag) {
 			// If this is an upsert then add it to the upsert
 			// to be treated specially.
-			upsert[tag] = elem.Field(i).Interface()
+			upsert[i] = &predValDat{predicate: tag, value: elem.Field(i).Interface()}
 		}
 		// Add the predicate and value to the full map.
-		full[tag] = elem.Field(i).Interface()
+		full[i] = &predValDat{predicate: tag, value: elem.Field(i).Interface()}
 	}
 
 	return

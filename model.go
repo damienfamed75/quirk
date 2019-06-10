@@ -30,3 +30,8 @@ type indexType struct {
 type mutateSingle func(context.Context, *dgo.Dgraph, interface{}, map[string]string, *sync.Mutex) error
 
 type rdfMode int
+
+type predValDat struct {
+	predicate string
+	value     interface{}
+}
