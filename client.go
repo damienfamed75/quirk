@@ -15,6 +15,7 @@ type Client struct {
 	schemaCache Schema
 
 	quirkName      string
+	quirkID        uint64
 	quirkRel       string
 	schemaString   string
 	useIncrementor bool
@@ -44,6 +45,7 @@ func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
 	}
 
 	err := q.setSchema(schema)
+	q.quirkID = aeshash(q.quirkName)
 	if err != nil {
 		q.logger.Warn("Schema was not processed correctly.", zap.Error(err))
 	}
