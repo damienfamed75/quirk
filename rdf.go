@@ -2,53 +2,56 @@ package quirk
 
 import (
 	"fmt"
-	"hash/fnv"
+	"strings"
 )
 
 const (
-	rdfRel  = "<%v> <%s> <%v> .\n"
+	rdfRel  = "<%d> <%s> <%d> .\n"
 	rdfLine = "<%v> <%s> %#v .\n"
 	rdfAuto = "_:%v <%s> %#v .\n"
 )
 
-func (c *Client) createRDF(mode rdfMode, predValMap map[string]interface{}) []string {
+func (c *Client) createRDF(mode rdfMode, predVal []*PredValDat) string {
 	var (
-		rdf    []string
+		id     interface{}
+		rdf    strings.Builder
 		rdfStr = rdfLine
 	)
 
-	if mode == auto {
-		rdfStr = rdfAuto
-		// For every new RDF this incrementor should be reset.
-		resetIncrementor(&charIncrementor)
+	if mode == hash {
+		rdfStr += rdfRel
+		quid, qrel := c.quirkID, c.quirkRel
+
+		for _, dat := range predVal {
+			id = aeshash(dat.Value.(string))
+			fmt.Fprintf(&rdf, rdfStr, id, dat.Predicate, dat.Value, quid, qrel, id)
+		}
+		return rdf.String()
 	}
 
-	var id interface{}
-	if name, ok := predValMap[c.predicateKey]; ok && mode == auto {
-		id = name
+	if mode == auto {
+		rdfStr = rdfAuto
+		for _, dat := range predVal {
+			if dat.Predicate == c.predicateKey {
+				id = dat.Value
+			}
+		}
+		if id == nil {
+			// For every new RDF this incrementor should be reset.
+			resetIncrementor(&charIncrementor)
+			id = increment(mode)
+		}
 	} else {
-		id = fmtID(mode, increment(mode))
+		id = increment(mode)
 	}
 
 	// create RDF lines in string.
-	for k, v := range predValMap {
-		if mode == hash {
-			id = fingerprint(v.(string))
-			rdf = append(rdf, fmt.Sprintf(rdfStr+rdfRel, id, k, v,
-				fingerprint(c.quirkName), c.quirkRel, id))
-		} else {
-			rdf = append(rdf, fmt.Sprintf(rdfStr, id, k, v))
-		}
+	for _, dat := range predVal {
+		fmt.Fprintf(&rdf, rdfStr, id, dat.Predicate, dat.Value)
 	}
 
 	// use incrementor, hash, or auto as UID.
-	return rdf
-}
-
-func fingerprint(val string) uint64 {
-	h := fnv.New64a()
-	h.Write([]byte(val))
-	return h.Sum64()
+	return rdf.String()
 }
 
 func fmtID(mode rdfMode, id uint64) interface{} {

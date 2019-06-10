@@ -8,7 +8,7 @@ import (
 
 func (c *Client) setQuirkSchema(schema string) {
 	var tag string
-	if c.quirkReverse {
+	if c.reverseEdge {
 		tag = tagReverse
 	}
 	c.schemaString = schema + "\n" + c.quirkRel + ":" + " " +

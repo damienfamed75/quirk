@@ -30,13 +30,13 @@ func WithQuirkRel(relName string) ClientConfiguration {
 
 func UseUIDIncrementer() ClientConfiguration {
 	return func(c *Client) {
-		c.useIncrementor = true
+		c.insertMode = incrementor
 	}
 }
 
-func UseQuirkReverse() ClientConfiguration {
+func UseReverseEdges() ClientConfiguration {
 	return func(c *Client) {
-		c.quirkReverse = true
+		c.reverseEdge = true
 	}
 }
 

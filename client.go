@@ -6,7 +6,6 @@ import (
 
 	"github.com/damienfamed75/quirk/logging"
 
-	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 	"go.uber.org/zap"
 )
@@ -14,25 +13,26 @@ import (
 type Client struct {
 	schemaCache Schema
 
-	quirkName      string
-	quirkRel       string
-	schemaString   string
-	useIncrementor bool
-	predicateKey   string
-	quirkReverse   bool
+	quirkName    string
+	quirkID      uint64
+	quirkRel     string
+	schemaString string
+	predicateKey string
+	reverseEdge  bool
+	insertMode   rdfMode
 
 	logger logging.Logger
 }
 
 func setupClient() *Client {
 	return &Client{
-		schemaCache:    make(map[string]Properties),
-		useIncrementor: false,
-		logger:         NewNilLogger(),
-		predicateKey:   "name",
-		quirkName:      "quirk",
-		quirkRel:       "hasExact",
-		quirkReverse:   false,
+		schemaCache:  make(map[string]Properties),
+		logger:       NewNilLogger(),
+		predicateKey: "name",
+		quirkName:    "quirk",
+		quirkRel:     "hasExact",
+		reverseEdge:  false,
+		insertMode:   auto,
 	}
 }
 
@@ -44,6 +44,7 @@ func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
 	}
 
 	err := q.setSchema(schema)
+	q.quirkID = aeshash(q.quirkName)
 	if err != nil {
 		q.logger.Warn("Schema was not processed correctly.", zap.Error(err))
 	}
@@ -51,19 +52,11 @@ func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
 	return q, err
 }
 
-func (c *Client) InitializeSchema(ctx context.Context, dg *dgo.Dgraph) error {
+func (c *Client) InitializeSchema(ctx context.Context, dg DgraphClient) error {
 	return dg.Alter(ctx, &api.Operation{Schema: c.schemaString})
 }
 
-func (c *Client) CreateRDF(m *Options) string {
-	// Check if both values are not nil
-
-	// Create RDF the given struct/structs
-
-	return ""
-}
-
-func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Options) (uidMap map[string]string, err error) {
+func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Options) (uidMap map[string]string, err error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
 		return nil, &Error{
 			Msg:      msgTooManyMutationFields,

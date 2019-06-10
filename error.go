@@ -23,21 +23,57 @@ func (e *Error) Error() string {
 	)
 }
 
-type FailedUpsert struct {
-	PredMap map[string]interface{}
-	RDF     string
+type TransactionError struct {
+	ExtErr   error
+	Msg      string
+	File     string
+	Function string
+	RDF      string
 }
 
-func (e *FailedUpsert) Error() string {
-	return "FailedUIDMap: One or more upserts failed. This is not an error."
+func (e *TransactionError) Error() string {
+	if e.ExtErr != nil {
+		return fmt.Sprintf("%s:%s: RDF[%s] external_err[%v]",
+			e.Function, e.File, e.RDF, e.ExtErr,
+		)
+	}
+
+	return fmt.Sprintf("%s:%s: RDF[%s]",
+		e.Function, e.File, e.RDF,
+	)
 }
 
-// GetPredicateMap will return the belonging predicate map.
-func (e *FailedUpsert) GetPredicateMap() map[string]interface{} {
-	return e.PredMap
+type FailedUpserts struct {
+	Upserts []*LoneUpsertError
+}
+
+func (e *FailedUpserts) Error() string {
+	return "FailedUpserts: One or more upserts failed. This is not an error."
+}
+
+func (e *FailedUpserts) Len() int {
+	return len(e.Upserts)
+}
+
+func (e *FailedUpserts) append(err ...*LoneUpsertError) {
+	e.Upserts = append(e.Upserts, err...)
+}
+
+type LoneUpsertError struct {
+	PredVals []*PredValDat
+	RDF      string
+}
+
+func (e *LoneUpsertError) Error() string {
+	return "LoneUpsertError: This upsert failed. This is not an error."
+}
+
+// GetPredicateValueSlice will return the belonging predicate slice.
+func (e *LoneUpsertError) GetPredicateValueSlice() []*PredValDat {
+	return e.PredVals
 }
 
 // GetRDF will return the belonging RDF string.
-func (e *FailedUpsert) GetRDF() string {
+func (e *LoneUpsertError) GetRDF() string {
 	return e.RDF
 }

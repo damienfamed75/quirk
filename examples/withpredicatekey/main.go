@@ -111,7 +111,7 @@ func main() {
 
 func printFailedUpserts(fUpsert *quirk.FailedUpsert) {
 	log.Printf("FailedUpsertRDF: [%s]\n", fUpsert.GetRDF())
-	for k, v := range fUpsert.GetPredicateMap() {
-		log.Printf("FailedPredicateMap: [%s] [%v]\n", k, v)
+	for _, dat := range fUpsert.GetPredicateValueSlice() {
+		log.Printf("FailedPredicateMap: [%s] [%v]\n", dat.Predicate, dat.Value)
 	}
 }

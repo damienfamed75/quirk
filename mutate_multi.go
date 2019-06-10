@@ -3,11 +3,10 @@ package quirk
 import (
 	"context"
 	"sync"
-
-	"github.com/dgraph-io/dgo"
 )
 
-func (c *Client) mutateMultiStruct(ctx context.Context, dg *dgo.Dgraph, dat []interface{}, uidMap map[string]string) error {
+func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
+	dat []interface{}, uidMap map[string]string) error {
 	// Create waitgroup and channels.
 	var (
 		limit = maxWorkers
@@ -42,16 +41,28 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg *dgo.Dgraph, dat []in
 
 func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 	done chan error, quit chan bool) error {
-	var err error
+	var err error = &FailedUpserts{}
+
+	// var failedUpserts []*LoneUpsertError
 
 	// Wait for workers to finish.
 	// receive results from channel.
 	for i := 0; i < limit; i++ {
 		select {
-		case err = <-done:
-			if err != nil {
-				close(quit)
-				i = limit
+		case werr := <-done:
+			if werr != nil {
+				if upserts, ok := werr.(*FailedUpserts); ok {
+					// err.(*FailedUpserts).append(upserts.Upserts...)
+
+					for _, up := range upserts.Upserts {
+						err.(*FailedUpserts).append(up)
+					}
+					// fmt.Println("LAUNCHW:", err.(*FailedUpserts).Len())
+				} else {
+					err = werr
+					close(quit)
+					i = limit
+				}
 			}
 		}
 	}
@@ -61,19 +72,24 @@ func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 	return err
 }
 
-func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup, m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
+func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
+	m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
 	read chan interface{}, quit chan bool, done chan error) {
-
+	// Defer that the waitgroup is finished.
 	defer wg.Done()
-	var err = error(nil)
+	var err error = &FailedUpserts{}
 
 	// For each signal received in read channel.
 	for data := range read {
 		// MutateSingleStruct with received struct.
 		mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
 		if mutErr != nil {
-			err = mutErr
-			break
+			if upsertErr, ok := mutErr.(*LoneUpsertError); ok {
+				err.(*FailedUpserts).append(upsertErr)
+			} else {
+				err = mutErr
+				break
+			}
 		}
 	}
 

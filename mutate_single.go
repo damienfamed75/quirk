@@ -2,59 +2,47 @@ package quirk
 
 import (
 	"context"
-	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 
-	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
-func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph, d interface{}, uidMap map[string]string, m *sync.Mutex) error {
-	upsertMap, fullMap := c.reflectMaps(d)
+func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
+	d interface{}, uidMap map[string]string, m *sync.Mutex) error {
+	// Use reflect to package the predicate and values in slices.
+	upsertPredVals, fullPredVals := c.reflectMaps(d)
 
 	// send upsert separate map to get hashed UIDs+RDF.
-	upsertRDFs := c.createRDF(hash, upsertMap)
+	upsertRDFs := c.createRDF(hash, upsertPredVals)
 
-	fmt.Printf("\n\nUPPPP: [\n%s]", upsertRDFs)
 	// send upsert RDF to be put into dgraph.
-	// Note: We're not saving the upsert uid map, because the user
-	// doesn't need to know these values. They just need to know the
-	// values of the nodes they asked to insert.
-	// failedUIDMap := make(map[string]string)
-	for _, rdf := range upsertRDFs {
-		err := mutate(ctx, dg.NewTxn(), rdf, make(map[string]string), m)
-		if err != nil {
-			return &FailedUpsert{PredMap: upsertMap, RDF: rdf}
-		}
-	}
-
-	// Get out designated mode for how the UIDs are going to be
-	// generated with our actual data nodes.
-	var mode = auto
-	if c.useIncrementor {
-		mode = incrementor
+	// Note: the upserted uids are not returned because the user only
+	// needs the returned uids of the nodes they requested to be inserted.
+	err := mutate(ctx, dg.NewTxn(), upsertRDFs, make(map[string]string), m)
+	if err != nil {
+		return &LoneUpsertError{PredVals: upsertPredVals, RDF: upsertRDFs}
 	}
 
 	// send full map to get auto incremented RDF string.
-	fullRDFs := c.createRDF(mode, fullMap)
+	fullRDFs := c.createRDF(c.insertMode, fullPredVals)
 
 	// else mutate the second RDF of nonupsert.
-	err := mutate(ctx, dg.NewTxn(), strings.Join(fullRDFs, "\n"), uidMap, m)
+	err = mutate(ctx, dg.NewTxn(), fullRDFs, uidMap, m)
 	if err != nil {
-		return err
+		return &TransactionError{File: "mutate_single.go", Function: "mutateSingleStruct",
+			RDF: fullRDFs, ExtErr: err}
 	}
-	fmt.Printf("\nFULLL: [\n%s]\n\n", fullRDFs)
 
 	// return UIDs of second RDF's nodes.
 	return nil
 }
 
-func (c *Client) reflectMaps(d interface{}) (upsert map[string]interface{}, full map[string]interface{}) {
-	upsert = make(map[string]interface{})
-	full = make(map[string]interface{})
+func (c *Client) reflectMaps(d interface{}) (upsert []*PredValDat, full []*PredValDat) {
 	var elem = reflect.ValueOf(d).Elem()
+	// upsert = make([]*PredValDat, elem.NumField())
+	upsert = make([]*PredValDat, 0, elem.NumField())
+	full = make([]*PredValDat, elem.NumField())
 
 	// loop through elements of struct.
 	for i := 0; i < elem.NumField(); i++ {
@@ -63,10 +51,11 @@ func (c *Client) reflectMaps(d interface{}) (upsert map[string]interface{}, full
 		if c.isUpsert(tag) {
 			// If this is an upsert then add it to the upsert
 			// to be treated specially.
-			upsert[tag] = elem.Field(i).Interface()
+			// upsert[upsertCount] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
+			upsert = append(upsert, &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()})
 		}
 		// Add the predicate and value to the full map.
-		full[tag] = elem.Field(i).Interface()
+		full[i] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
 	}
 
 	return
@@ -79,16 +68,12 @@ func (c *Client) isUpsert(tag string) bool {
 	return false
 }
 
-func mutate(ctx context.Context, t *dgo.Txn, rdf string, uidMap map[string]string, m *sync.Mutex) error {
+func mutate(ctx context.Context, t DgraphTxn, rdf string, uidMap map[string]string, m *sync.Mutex) error {
 	a, err := t.Mutate(ctx, &api.Mutation{
 		CommitNow: true,
 		SetNquads: []byte(rdf),
 	})
 	if err != nil {
-		return err
-	}
-
-	if err = t.Discard(ctx); err != nil {
 		return err
 	}
 

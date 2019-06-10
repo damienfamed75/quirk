@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
+	"io"
 	"log"
+	"os"
 
 	"github.com/damienfamed75/quirk"
 
@@ -13,9 +16,8 @@ import (
 
 const (
 	schema = `
-	name: string @index(hash) .
-	ssn: string @index(hash) @upsert .
-	policy: string @index(hash) @upsert .
+	name: string @index(hash) @upsert .
+	age: string .
 	`
 )
 
@@ -23,9 +25,8 @@ const (
 // a true upsert functionality for when we're dealing with
 // social security numbers and policy numbers.
 type Person struct {
-	Name   string `quirk:"name"`
-	SSN    string `quirk:"ssn"`
-	Policy string `quirk:"policy"`
+	Name string `quirk:"name"`
+	Age  string `quirk:"age"`
 }
 
 func main() {
@@ -54,54 +55,63 @@ func main() {
 	// Create the Quirk Client with our schema.
 	// The schema is read and processed so the client knows
 	// which predicates use the @upsert directive.
-	c, err := quirk.NewClient(schema)
+	c, err := quirk.NewClient(schema, quirk.UseReverseEdges())
 	if err != nil {
 		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
 	}
+
+	c.InitializeSchema(context.Background(), dg)
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
 	var people []interface{}
 
-	// Damien or George should fail because they share the same Policy.
-	people = append(people, &Person{Name: "Damien", SSN: "123", Policy: "ABC"})
-	people = append(people, &Person{Name: "George", SSN: "124", Policy: "ABC"})
+	// Opening our testing data.
+	f, err := os.Open("data.csv")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer f.Close()
 
-	// Bahram or Angad should fail because they share the same SSN.
-	people = append(people, &Person{Name: "Bahram", SSN: "125", Policy: "DEF"})
-	people = append(people, &Person{Name: "Angad", SSN: "125", Policy: "GHI"})
+	csvReader := csv.NewReader(f)
+
+	for {
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		// Create structs from the test data.
+		people = append(people, &Person{Name: line[0], Age: line[1]})
+	}
 
 	// Use the quirk client to insert multiple nodes at a time
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
-	uidMap, err := c.InsertNode(context.Background(), dg,
+
+	// We're not storing the uidMap for successful nodes, because
+	// the nodes that we have so many nodes that are being inserted
+	// and we just want to focus on the failed upserts.
+	_, err = c.InsertNode(context.Background(), dg,
 		&quirk.Options{SetMultiStruct: people},
 	)
 	if err != nil {
 		// If the error is a list of our failed upserts
 		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpsert); ok {
+		if fUpsert, ok := err.(*quirk.FailedUpserts); ok {
 			printFailedUpserts(fUpsert)
 		} else {
 			log.Fatalf("Error when inserting nodes [%v]\n", err)
 		}
 	}
-
-	// Finally print out the successful UIDs.
-	// The key is typically going to be either your
-	// assigned "name" predicate or if you don't have this
-	// then it will be an incremented character/s.
-	// Note: If you wish to use another predicate beside "name"
-	// you may set that when creating the client and using
-	// quirk.WithPredicateKey(predicateName string)
-	for k, v := range uidMap {
-		log.Printf("UIDMap: [%s] [%s]\n", k, v)
-	}
 }
 
-func printFailedUpserts(fUpsert *quirk.FailedUpsert) {
-	log.Printf("FailedUpsertRDF: [%s]\n", fUpsert.GetRDF())
-	for _, dat := range fUpsert.GetPredicateValueSlice() {
-		log.Printf("FailedPredicateMap: [%s] [%v]\n", dat.Predicate, dat.Value)
+func printFailedUpserts(fUpsert *quirk.FailedUpserts) {
+	for _, upsert := range fUpsert.Upserts {
+		log.Printf("FailedUpsert: rdf[\n%v]\n", upsert.RDF)
 	}
+	log.Printf("Num of failed upserts [%d]\n", fUpsert.Len())
 }
