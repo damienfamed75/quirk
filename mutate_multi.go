@@ -3,11 +3,9 @@ package quirk
 import (
 	"context"
 	"sync"
-
-	"github.com/dgraph-io/dgo"
 )
 
-func (c *Client) mutateMultiStruct(ctx context.Context, dg *dgo.Dgraph,
+func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 	dat []interface{}, uidMap map[string]string) error {
 	// Create waitgroup and channels.
 	var (
@@ -62,7 +60,7 @@ func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 	return err
 }
 
-func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup,
+func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
 	m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
 	read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.

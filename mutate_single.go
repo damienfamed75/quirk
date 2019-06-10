@@ -9,7 +9,7 @@ import (
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
-func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph,
+func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 	d interface{}, uidMap map[string]string, m *sync.Mutex) error {
 	// Use reflect to package the predicate and values in slices.
 	upsertPredVals, fullPredVals := c.reflectMaps(d)

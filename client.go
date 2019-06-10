@@ -6,7 +6,6 @@ import (
 
 	"github.com/damienfamed75/quirk/logging"
 
-	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 	"go.uber.org/zap"
 )
@@ -53,11 +52,11 @@ func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
 	return q, err
 }
 
-func (c *Client) InitializeSchema(ctx context.Context, dg *dgo.Dgraph) error {
+func (c *Client) InitializeSchema(ctx context.Context, dg DgraphClient) error {
 	return dg.Alter(ctx, &api.Operation{Schema: c.schemaString})
 }
 
-func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Options) (uidMap map[string]string, err error) {
+func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Options) (uidMap map[string]string, err error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
 		return nil, &Error{
 			Msg:      msgTooManyMutationFields,
