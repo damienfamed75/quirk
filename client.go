@@ -14,26 +14,26 @@ import (
 type Client struct {
 	schemaCache Schema
 
-	quirkName      string
-	quirkID        uint64
-	quirkRel       string
-	schemaString   string
-	useIncrementor bool
-	predicateKey   string
-	quirkReverse   bool
+	quirkName    string
+	quirkID      uint64
+	quirkRel     string
+	schemaString string
+	predicateKey string
+	reverseEdge  bool
+	insertMode   rdfMode
 
 	logger logging.Logger
 }
 
 func setupClient() *Client {
 	return &Client{
-		schemaCache:    make(map[string]Properties),
-		useIncrementor: false,
-		logger:         NewNilLogger(),
-		predicateKey:   "name",
-		quirkName:      "quirk",
-		quirkRel:       "hasExact",
-		quirkReverse:   false,
+		schemaCache:  make(map[string]Properties),
+		logger:       NewNilLogger(),
+		predicateKey: "name",
+		quirkName:    "quirk",
+		quirkRel:     "hasExact",
+		reverseEdge:  false,
+		insertMode:   auto,
 	}
 }
 
@@ -55,14 +55,6 @@ func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
 
 func (c *Client) InitializeSchema(ctx context.Context, dg *dgo.Dgraph) error {
 	return dg.Alter(ctx, &api.Operation{Schema: c.schemaString})
-}
-
-func (c *Client) CreateRDF(m *Options) string {
-	// Check if both values are not nil
-
-	// Create RDF the given struct/structs
-
-	return ""
 }
 
 func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Options) (uidMap map[string]string, err error) {
