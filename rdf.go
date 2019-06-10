@@ -11,7 +11,7 @@ const (
 	rdfAuto = "_:%v <%s> %#v .\n"
 )
 
-func (c *Client) createRDF(mode rdfMode, predVal []*predValDat) string {
+func (c *Client) createRDF(mode rdfMode, predVal []*PredValDat) string {
 	var (
 		id     interface{}
 		rdf    strings.Builder
@@ -23,20 +23,23 @@ func (c *Client) createRDF(mode rdfMode, predVal []*predValDat) string {
 		quid, qrel := c.quirkID, c.quirkRel
 
 		for _, dat := range predVal {
-			id = aeshash(dat.value.(string))
-			fmt.Fprintf(&rdf, rdfStr, id, dat.predicate, dat.predicate, quid, qrel, id)
+			id = aeshash(dat.Value.(string))
+			fmt.Fprintf(&rdf, rdfStr, id, dat.Predicate, dat.Value, quid, qrel, id)
 		}
 		return rdf.String()
 	}
 
 	if mode == auto {
 		rdfStr = rdfAuto
-		// For every new RDF this incrementor should be reset.
-		resetIncrementor(&charIncrementor)
 		for _, dat := range predVal {
-			if dat.predicate == c.predicateKey {
-				id = dat.value
+			if dat.Predicate == c.predicateKey {
+				id = dat.Value
 			}
+		}
+		if id == nil {
+			// For every new RDF this incrementor should be reset.
+			resetIncrementor(&charIncrementor)
+			id = increment(mode)
 		}
 	} else {
 		id = increment(mode)
@@ -44,7 +47,7 @@ func (c *Client) createRDF(mode rdfMode, predVal []*predValDat) string {
 
 	// create RDF lines in string.
 	for _, dat := range predVal {
-		fmt.Fprintf(&rdf, rdfStr, id, dat.predicate, dat.value)
+		fmt.Fprintf(&rdf, rdfStr, id, dat.Predicate, dat.Value)
 	}
 
 	// use incrementor, hash, or auto as UID.

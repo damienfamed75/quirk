@@ -7,7 +7,8 @@ import (
 	"github.com/dgraph-io/dgo"
 )
 
-func (c *Client) mutateMultiStruct(ctx context.Context, dg *dgo.Dgraph, dat []interface{}, uidMap map[string]string) error {
+func (c *Client) mutateMultiStruct(ctx context.Context, dg *dgo.Dgraph,
+	dat []interface{}, uidMap map[string]string) error {
 	// Create waitgroup and channels.
 	var (
 		limit = maxWorkers
@@ -61,9 +62,10 @@ func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 	return err
 }
 
-func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup, m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
+func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup,
+	m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
 	read chan interface{}, quit chan bool, done chan error) {
-
+	// Defer that the waitgroup is finished.
 	defer wg.Done()
 	var err = error(nil)
 

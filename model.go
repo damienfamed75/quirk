@@ -31,7 +31,7 @@ type mutateSingle func(context.Context, *dgo.Dgraph, interface{}, map[string]str
 
 type rdfMode int
 
-type predValDat struct {
-	predicate string
-	value     interface{}
+type PredValDat struct {
+	Predicate string
+	Value     interface{}
 }
