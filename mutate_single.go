@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
@@ -67,7 +66,7 @@ func (c *Client) isUpsert(tag string) bool {
 	return false
 }
 
-func mutate(ctx context.Context, t *dgo.Txn, rdf string, uidMap map[string]string, m *sync.Mutex) error {
+func mutate(ctx context.Context, t DgraphTxn, rdf string, uidMap map[string]string, m *sync.Mutex) error {
 	a, err := t.Mutate(ctx, &api.Mutation{
 		CommitNow: true,
 		SetNquads: []byte(rdf),
