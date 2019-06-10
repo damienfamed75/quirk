@@ -24,17 +24,17 @@ func (e *Error) Error() string {
 }
 
 type FailedUpsert struct {
-	PredMap map[string]interface{}
-	RDF     string
+	PredVals []*PredValDat
+	RDF      string
 }
 
 func (e *FailedUpsert) Error() string {
 	return "FailedUIDMap: One or more upserts failed. This is not an error."
 }
 
-// GetPredicateMap will return the belonging predicate map.
-func (e *FailedUpsert) GetPredicateMap() map[string]interface{} {
-	return e.PredMap
+// GetPredicateValueSlice will return the belonging predicate slice.
+func (e *FailedUpsert) GetPredicateValueSlice() []*PredValDat {
+	return e.PredVals
 }
 
 // GetRDF will return the belonging RDF string.

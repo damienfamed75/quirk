@@ -44,6 +44,7 @@ const (
 const (
 	msgTooManyMutationFields = "Too many fields filled in QuirkMutation"
 	msgInvalidSchemaRead     = "Invalid schema caused reading error"
+	msgTransactionFailure    = "Transaction failure"
 )
 
 const (
