@@ -21,7 +21,7 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 	// needs the returned uids of the nodes they requested to be inserted.
 	err := mutate(ctx, dg.NewTxn(), upsertRDFs, make(map[string]string), m)
 	if err != nil {
-		return &FailedUpsert{PredVals: upsertPredVals, RDF: upsertRDFs}
+		return &LoneUpsertError{PredVals: upsertPredVals, RDF: upsertRDFs}
 	}
 
 	// send full map to get auto incremented RDF string.
@@ -30,8 +30,8 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 	// else mutate the second RDF of nonupsert.
 	err = mutate(ctx, dg.NewTxn(), fullRDFs, uidMap, m)
 	if err != nil {
-		return &Error{File: "mutate_single.go", Function: "mutateSingleStruct",
-			Msg: msgTransactionFailure, ExtErr: err}
+		return &TransactionError{File: "mutate_single.go", Function: "mutateSingleStruct",
+			RDF: fullRDFs, ExtErr: err}
 	}
 
 	// return UIDs of second RDF's nodes.
@@ -40,7 +40,8 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 
 func (c *Client) reflectMaps(d interface{}) (upsert []*PredValDat, full []*PredValDat) {
 	var elem = reflect.ValueOf(d).Elem()
-	upsert = make([]*PredValDat, elem.NumField())
+	// upsert = make([]*PredValDat, elem.NumField())
+	upsert = make([]*PredValDat, 0, elem.NumField())
 	full = make([]*PredValDat, elem.NumField())
 
 	// loop through elements of struct.
@@ -50,7 +51,8 @@ func (c *Client) reflectMaps(d interface{}) (upsert []*PredValDat, full []*PredV
 		if c.isUpsert(tag) {
 			// If this is an upsert then add it to the upsert
 			// to be treated specially.
-			upsert[i] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
+			// upsert[upsertCount] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
+			upsert = append(upsert, &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()})
 		}
 		// Add the predicate and value to the full map.
 		full[i] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
@@ -72,10 +74,6 @@ func mutate(ctx context.Context, t DgraphTxn, rdf string, uidMap map[string]stri
 		SetNquads: []byte(rdf),
 	})
 	if err != nil {
-		return err
-	}
-
-	if err = t.Discard(ctx); err != nil {
 		return err
 	}
 

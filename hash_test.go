@@ -11,6 +11,12 @@ func BenchmarkAeshash(b *testing.B) {
 	}
 }
 
+func BenchmarkAeshashOld(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = aeshashold(string(15 * i))
+	}
+}
+
 func BenchmarkAeshashVerbose(b *testing.B) {
 	var hashes = make(map[uint64]bool)
 	var dupes int
