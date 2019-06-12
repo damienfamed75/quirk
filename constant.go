@@ -1,46 +1,6 @@
 package quirk
 
 const (
-	// DataTypes are a required piece of the schema.
-	dTypeDefault  = "default"
-	dTypeInt      = "int"
-	dTypeFloat    = "float"
-	dTypeString   = "string"
-	dTypeBool     = "bool"
-	dTypeID       = "id"
-	dTypeDateTime = "datetime"
-	dTypeGeo      = "geo"
-	dTypeUID      = "uid"
-	dTypePassword = "password"
-
-	// Tags appear just after the Datatype.
-	tagIndex   = "@index"
-	tagReverse = "@reverse"
-
-	// Directives that appear after tags.
-	dirUpsert        = "@upsert"
-	dirCount         = "@count"
-	dirIgnoreReflext = "@ignorereflex"
-	dirNormalize     = "@normalize"
-	dirCascade       = "@cascade"
-	dirLang          = "@lang"
-	dirFilter        = "@filter"
-
-	// string specific tokenizers.
-	tokenExact    = "exact"
-	tokenHash     = "hash"
-	tokenTerm     = "term"
-	tokenFullText = "fulltext"
-	tokenTrigram  = "trigram"
-
-	// datetime specific tokenizers.
-	tokenYear  = "year"
-	tokenMonth = "month"
-	tokenDay   = "day"
-	tokenHour  = "hour"
-)
-
-const (
 	schemaDelimiter    = '.'
 	predicateDelimiter = ':'
 )
@@ -55,8 +15,12 @@ const (
 	maxWorkers = 50
 )
 
+const tagUnique tagOptions = "unique"
+
 const (
-	hash rdfMode = iota
-	incrementor
-	auto
+	emptyQuery = "{}"
+	whenRDF = `<%s> <when> "%d"^^<xs:int> .`
+	blankDefault = "data"
+	rdfBase = "_:%s <%s> %q .\n"
+	queryfunc = "%s(func: eq(%s, %q), first: 1){uid}\n"
 )
