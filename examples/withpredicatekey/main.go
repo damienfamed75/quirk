@@ -15,7 +15,7 @@ const (
 	schema = `
 	username: string @index(hash) @upsert .
 	company: string @index(hash) .
-	website: string @index(hash) .
+	website: string @index(hash) @upsert .
 	`
 )
 
@@ -23,9 +23,9 @@ const (
 // need a "name" predicate for custom keys in the returned
 // uid map. You may set the key to be any predicate you wish.
 type Profile struct {
-	Username string `quirk:"username"`
+	Username string `quirk:"username,unique"`
 	Company  string `quirk:"company"`
-	Website  string `quirk:"website"`
+	Website  string `quirk:"website,unique"`
 }
 
 func main() {
@@ -46,23 +46,16 @@ func main() {
 	}
 
 	// Alter the schema to be equal to our schema variable.
-	// err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
-	// if err != nil {
-	// 	log.Fatalf("Alteration error with setting schema [%v]\n", err)
-	// }
+	err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
+	if err != nil {
+		log.Fatalf("Alteration error with setting schema [%v]\n", err)
+	}
 
 	// Create the Quirk Client with our schema and WithPredicateKey
 	// so we can set a custom key to use when creating the UID map result.
 	// Note: If this function is not added when creating the Quirk client
 	// the default predicate key will be set to "name"
-	c, err := quirk.NewClient(schema, quirk.WithPredicateKey("username"))
-	if err != nil {
-		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
-	}
-	err = c.InitializeSchema(context.Background(), dg)
-	if err != nil {
-		log.Fatalf("Alteration error with setting schema [%v]\n", err)
-	}
+	c := quirk.NewClient(quirk.WithPredicateKey("username"))
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
@@ -70,10 +63,9 @@ func main() {
 
 	// One of the two profiles will fail because they both share the same username.
 	profiles = append(profiles, &Profile{Username: "damienstamates", Company: "NM", Website: "northwesternmutual.com"})
-	profiles = append(profiles, &Profile{Username: "damienstamates", Company: "FOXCONN", Website: "foxconn.com"})
-
 	profiles = append(profiles, &Profile{Username: "barum", Company: "NM", Website: "northwesternmutual.com"})
 	profiles = append(profiles, &Profile{Username: "gevuong", Company: "NM", Website: "northwesternmutual.com"})
+	profiles = append(profiles, &Profile{Username: "damienstamates", Company: "FOXCONN", Website: "foxconn.com"})
 	profiles = append(profiles, &Profile{Username: "angad", Company: "NM", Website: "northwesternmutual.com"})
 	profiles = append(profiles, &Profile{Username: "cyberninja89", Company: "NTT", Website: "nttdata.com"})
 	profiles = append(profiles, &Profile{Username: "solarlune", Company: "N/A", Website: "solarlune.com"})
@@ -85,16 +77,10 @@ func main() {
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
 	uidMap, err := c.InsertNode(context.Background(), dg,
-		&quirk.Options{SetMultiStruct: profiles},
+		&quirk.Operation{SetMultiStruct: profiles},
 	)
 	if err != nil {
-		// If the error is a list of our failed upserts
-		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpsert); ok {
-			printFailedUpserts(fUpsert)
-		} else {
-			log.Fatalf("Error when inserting nodes [%v]\n", err)
-		}
+		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
 
 	// Finally print out the successful UIDs.
@@ -106,12 +92,5 @@ func main() {
 	// quirk.WithPredicateKey(predicateName string)
 	for k, v := range uidMap {
 		log.Printf("UIDMap: [%s] [%s]\n", k, v)
-	}
-}
-
-func printFailedUpserts(fUpsert *quirk.FailedUpsert) {
-	log.Printf("FailedUpsertRDF: [%s]\n", fUpsert.GetRDF())
-	for _, dat := range fUpsert.GetPredicateValueSlice() {
-		log.Printf("FailedPredicateMap: [%s] [%v]\n", dat.Predicate, dat.Value)
 	}
 }

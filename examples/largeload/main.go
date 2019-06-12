@@ -25,7 +25,7 @@ const (
 // a true upsert functionality for when we're dealing with
 // social security numbers and policy numbers.
 type Person struct {
-	Name string `quirk:"name"`
+	Name string `quirk:"name,unique"`
 	Age  string `quirk:"age"`
 }
 
@@ -55,12 +55,7 @@ func main() {
 	// Create the Quirk Client with our schema.
 	// The schema is read and processed so the client knows
 	// which predicates use the @upsert directive.
-	c, err := quirk.NewClient(schema, quirk.UseReverseEdges())
-	if err != nil {
-		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
-	}
-
-	c.InitializeSchema(context.Background(), dg)
+	c := quirk.NewClient()
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
@@ -96,22 +91,9 @@ func main() {
 	// the nodes that we have so many nodes that are being inserted
 	// and we just want to focus on the failed upserts.
 	_, err = c.InsertNode(context.Background(), dg,
-		&quirk.Options{SetMultiStruct: people},
+		&quirk.Operation{SetMultiStruct: people},
 	)
 	if err != nil {
-		// If the error is a list of our failed upserts
-		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpserts); ok {
-			printFailedUpserts(fUpsert)
-		} else {
-			log.Fatalf("Error when inserting nodes [%v]\n", err)
-		}
+		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
-}
-
-func printFailedUpserts(fUpsert *quirk.FailedUpserts) {
-	for _, upsert := range fUpsert.Upserts {
-		log.Printf("FailedUpsert: rdf[\n%v]\n", upsert.RDF)
-	}
-	log.Printf("Num of failed upserts [%d]\n", fUpsert.Len())
 }

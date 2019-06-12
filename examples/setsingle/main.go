@@ -40,10 +40,10 @@ func main() {
 	dg := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// Drop all pre-existing data in the graph.
-	err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
-	if err != nil {
-		log.Fatalf("Alteration error with DropAll [%v]\n", err)
-	}
+	// err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
+	// if err != nil {
+	// 	log.Fatalf("Alteration error with DropAll [%v]\n", err)
+	// }
 
 	// Alter the schema to be equal to our schema variable.
 	err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
@@ -63,12 +63,12 @@ func main() {
 	// and make sure that if any of the fields are upsert predicates
 	// to fail them on transaction and return promptly via the error.
 	uidMap, err := c.InsertNode(context.Background(), dg,
-		&quirk.Options{SetSingleStruct: &Person{Name: "John", SSN: "126", Policy: "JKL"}},
+		&quirk.Operation{SetSingleStruct: &Person{Name: "John", SSN: "126", Policy: "JKL"}},
 	)
 	if err != nil {
 		// If the error is a list of our failed upserts
 		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpsert); ok {
+		if fUpsert, ok := err.(*quirk.FailedUpserts); ok {
 			printFailedUpserts(fUpsert)
 		} else {
 			log.Fatalf("Error when inserting nodes [%v]\n", err)
@@ -87,9 +87,9 @@ func main() {
 	}
 }
 
-func printFailedUpserts(fUpsert *quirk.FailedUpsert) {
-	log.Printf("FailedUpsertRDF: [%s]\n", fUpsert.GetRDF())
-	for _, dat := range fUpsert.GetPredicateValueSlice() {
-		log.Printf("FailedPredicateMap: [%s] [%v]\n", dat.Predicate, dat.Value)
+func printFailedUpserts(fUpsert *quirk.FailedUpserts) {
+	for _, upsert := range fUpsert.Upserts {
+		log.Printf("FailedUpsert: rdf[\n%v]\n", upsert.RDF)
 	}
+	log.Printf("Num of failed upserts [%d]\n", fUpsert.Len())
 }

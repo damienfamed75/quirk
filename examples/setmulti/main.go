@@ -24,8 +24,8 @@ const (
 // social security numbers and policy numbers.
 type Person struct {
 	Name   string `quirk:"name"`
-	SSN    string `quirk:"ssn"`
-	Policy string `quirk:"policy"`
+	SSN    string `quirk:"ssn,unique"`
+	Policy string `quirk:"policy,unique"`
 }
 
 func main() {
@@ -54,10 +54,7 @@ func main() {
 	// Create the Quirk Client with our schema.
 	// The schema is read and processed so the client knows
 	// which predicates use the @upsert directive.
-	c, err := quirk.NewClient(schema)
-	if err != nil {
-		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
-	}
+	c := quirk.NewClient()
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
@@ -75,16 +72,12 @@ func main() {
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
 	uidMap, err := c.InsertNode(context.Background(), dg,
-		&quirk.Options{SetMultiStruct: people},
+		&quirk.Operation{SetMultiStruct: people},
 	)
 	if err != nil {
 		// If the error is a list of our failed upserts
 		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpsert); ok {
-			printFailedUpserts(fUpsert)
-		} else {
-			log.Fatalf("Error when inserting nodes [%v]\n", err)
-		}
+		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
 
 	// Finally print out the successful UIDs.
@@ -96,12 +89,5 @@ func main() {
 	// quirk.WithPredicateKey(predicateName string)
 	for k, v := range uidMap {
 		log.Printf("UIDMap: [%s] [%s]\n", k, v)
-	}
-}
-
-func printFailedUpserts(fUpsert *quirk.FailedUpsert) {
-	log.Printf("FailedUpsertRDF: [%s]\n", fUpsert.GetRDF())
-	for _, dat := range fUpsert.GetPredicateValueSlice() {
-		log.Printf("FailedPredicateMap: [%s] [%v]\n", dat.Predicate, dat.Value)
 	}
 }
