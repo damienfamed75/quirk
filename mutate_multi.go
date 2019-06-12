@@ -2,7 +2,18 @@ package quirk
 
 import (
 	"context"
+	"fmt"
 	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/dgraph-io/dgo/y"
+)
+
+var (
+	lastStatus   = time.Now()
+	successCount uint64
+	retryCount   uint64
 )
 
 func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
@@ -41,28 +52,17 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 
 func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 	done chan error, quit chan bool) error {
-	var err error = &FailedUpserts{}
 
-	// var failedUpserts []*LoneUpsertError
-
+	var err error
 	// Wait for workers to finish.
 	// receive results from channel.
 	for i := 0; i < limit; i++ {
 		select {
 		case werr := <-done:
 			if werr != nil {
-				if upserts, ok := werr.(*FailedUpserts); ok {
-					// err.(*FailedUpserts).append(upserts.Upserts...)
-
-					for _, up := range upserts.Upserts {
-						err.(*FailedUpserts).append(up)
-					}
-					// fmt.Println("LAUNCHW:", err.(*FailedUpserts).Len())
-				} else {
-					err = werr
-					close(quit)
-					i = limit
-				}
+				err = werr
+				close(quit)
+				i = limit
 			}
 		}
 	}
@@ -77,19 +77,40 @@ func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
 	read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()
-	var err error = &FailedUpserts{}
+	var err error
 
 	// For each signal received in read channel.
+ReadLoop:
 	for data := range read {
-		// MutateSingleStruct with received struct.
-		mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
-		if mutErr != nil {
-			if upsertErr, ok := mutErr.(*LoneUpsertError); ok {
-				err.(*FailedUpserts).append(upsertErr)
-			} else {
-				err = mutErr
-				break
+		// Loop through until a definitive error or success message
+		// is received from a mutation.
+	Forever:
+		for {
+			if time.Since(lastStatus) > 100*time.Millisecond {
+				fmt.Printf("[%s] Successful Unique Nodes: %d Retries: %d\n", time.Now().Format(time.Stamp),
+					atomic.LoadUint64(&successCount), atomic.LoadUint64(&retryCount))
+				lastStatus = time.Now()
 			}
+
+			// MutateSingleStruct with received struct.
+			new, mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
+
+			switch mutErr {
+			case nil:
+				if new {
+					// If a successful new node was added then count up.
+					atomic.AddUint64(&successCount, 1)
+				}
+				break Forever
+			case y.ErrAborted:
+				// pass
+			default:
+				err = mutErr
+				break ReadLoop
+			}
+
+			// If the transaction was aborted then retry.
+			atomic.AddUint64(&retryCount, 1)
 		}
 	}
 
