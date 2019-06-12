@@ -2,12 +2,14 @@ package quirk
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/damienfamed75/quirk/logging"
+
 	"github.com/dgraph-io/dgo/y"
+	"go.uber.org/zap"
 )
 
 var (
@@ -36,8 +38,8 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 	// Launch workers.
 	for i := 0; i < limit; i++ {
 		wg.Add(1)
-		go mutationWorker(ctx, dg, &wg, &m, c.mutateSingleStruct, uidMap,
-			read, quit, done)
+		go mutationWorker(ctx, dg, &wg, &m, c.mutateSingleStruct, c.logger,
+			uidMap,read, quit, done)
 	}
 
 	// Send data to workers via channel.
@@ -73,8 +75,8 @@ func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 }
 
 func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
-	m *sync.Mutex, mutateSingleStruct mutateSingle, uidMap map[string]string,
-	read chan interface{}, quit chan bool, done chan error) {
+	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger, 
+	uidMap map[string]string, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()
 	var err error
@@ -87,8 +89,9 @@ ReadLoop:
 	Forever:
 		for {
 			if time.Since(lastStatus) > 100*time.Millisecond {
-				fmt.Printf("[%s] Successful Unique Nodes: %d Retries: %d\n", time.Now().Format(time.Stamp),
-					atomic.LoadUint64(&successCount), atomic.LoadUint64(&retryCount))
+				logger.Debug("Insert status", 
+					zap.Uint64("Success", atomic.LoadUint64(&successCount)),
+					zap.Uint64("Retries", atomic.LoadUint64(&retryCount)))
 				lastStatus = time.Now()
 			}
 

@@ -55,7 +55,7 @@ func main() {
 	// Create the Quirk Client with our schema.
 	// The schema is read and processed so the client knows
 	// which predicates use the @upsert directive.
-	c := quirk.NewClient()
+	c := quirk.NewClient(quirk.WithLogger(quirk.NewDebugLogger()))
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
