@@ -2,86 +2,85 @@ package quirk
 
 import (
 	"context"
-	"reflect"
+	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
 func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
-	d interface{}, uidMap map[string]string, m *sync.Mutex) error {
+	d interface{}, uidMap map[string]string, m *sync.Mutex) (bool, error) {
 	// Use reflect to package the predicate and values in slices.
-	upsertPredVals, fullPredVals := c.reflectMaps(d)
+	predVals := reflectMaps(d)
 
-	// send upsert separate map to get hashed UIDs+RDF.
-	upsertRDFs := c.createRDF(hash, upsertPredVals)
+	res := c.tryUpsert(ctx, dg.NewTxn(), predVals)
 
-	// send upsert RDF to be put into dgraph.
-	// Note: the upserted uids are not returned because the user only
-	// needs the returned uids of the nodes they requested to be inserted.
-	err := mutate(ctx, dg.NewTxn(), upsertRDFs, make(map[string]string), m)
-	if err != nil {
-		return &LoneUpsertError{PredVals: upsertPredVals, RDF: upsertRDFs}
+	if res.err != nil {
+		return res.new, res.err
+	}
+	if res.new {
+		// Note: The reason this isn't in the worker is because
+		// when calling to add a single node then this map will
+		// not be updated.
+		m.Lock()
+		uidMap[res.identifier] = res.uid
+		m.Unlock()
 	}
 
-	// send full map to get auto incremented RDF string.
-	fullRDFs := c.createRDF(c.insertMode, fullPredVals)
-
-	// else mutate the second RDF of nonupsert.
-	err = mutate(ctx, dg.NewTxn(), fullRDFs, uidMap, m)
-	if err != nil {
-		return &TransactionError{File: "mutate_single.go", Function: "mutateSingleStruct",
-			RDF: fullRDFs, ExtErr: err}
-	}
-
-	// return UIDs of second RDF's nodes.
-	return nil
+	return res.new, nil
 }
 
-func (c *Client) reflectMaps(d interface{}) (upsert []*PredValDat, full []*PredValDat) {
-	var elem = reflect.ValueOf(d).Elem()
-	// upsert = make([]*PredValDat, elem.NumField())
-	upsert = make([]*PredValDat, 0, elem.NumField())
-	full = make([]*PredValDat, elem.NumField())
+func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat []*predValDat) *upsertResponse {
+	defer txn.Discard(ctx)
 
-	// loop through elements of struct.
-	for i := 0; i < elem.NumField(); i++ {
-		var tag = reflect.TypeOf(d).Elem().Field(i).Tag.Get("quirk")
-		// store upsert predicates in separate map.
-		if c.isUpsert(tag) {
-			// If this is an upsert then add it to the upsert
-			// to be treated specially.
-			// upsert[upsertCount] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
-			upsert = append(upsert, &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()})
+	var builder strings.Builder
+
+	uid, err := queryUID(ctx, txn, &builder, dat)
+	if err != nil {
+		return &upsertResponse{err: err}
+	}
+
+	identifier := blankDefault
+	for _, d := range dat {
+		if d.Predicate == c.predicateKey {
+			identifier = fmt.Sprintf("%v", d.Value)
 		}
-		// Add the predicate and value to the full map.
-		full[i] = &PredValDat{Predicate: tag, Value: elem.Field(i).Interface()}
 	}
 
-	return
-}
-
-func (c *Client) isUpsert(tag string) bool {
-	if v, ok := c.schemaCache[tag]; ok {
-		return v.Upsert
+	var new bool
+	if uid == "" {
+		new = true
+		uid, err = mutateNewNode(ctx, txn, &builder, identifier, dat)
+		if err != nil {
+			return &upsertResponse{
+				err: err,
+				new: new,
+			}
+		}
 	}
-	return false
+
+	return &upsertResponse{
+		err: txn.Commit(ctx), new: new, uid: uid, identifier: identifier,
+	}
 }
 
-func mutate(ctx context.Context, t DgraphTxn, rdf string, uidMap map[string]string, m *sync.Mutex) error {
-	a, err := t.Mutate(ctx, &api.Mutation{
-		CommitNow: true,
-		SetNquads: []byte(rdf),
-	})
+func mutateNewNode(ctx context.Context, txn dgraphTxn, b builder, identifier string, dat []*predValDat) (string, error) {
+	for _, d := range dat {
+		fmt.Fprintf(b, rdfBase, identifier, d.Predicate, d.Value)
+	}
+
+	mu := &api.Mutation{SetNquads: []byte(b.String())}
+	assigned, err := txn.Mutate(ctx, mu)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	m.Lock()
-	for k, v := range a.GetUids() {
-		uidMap[k] = v
+	uid := assigned.GetUids()[identifier]
+	if uid == "" {
+		return "", errors.New("UID not received")
 	}
-	m.Unlock()
 
-	return nil
+	return uid, nil
 }
