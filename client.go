@@ -5,58 +5,31 @@ import (
 	"sync"
 
 	"github.com/damienfamed75/quirk/logging"
-
-	"github.com/dgraph-io/dgo/protos/api"
-	"go.uber.org/zap"
 )
 
 type Client struct {
-	schemaCache Schema
-
-	quirkName    string
-	quirkID      uint64
-	quirkRel     string
-	schemaString string
 	predicateKey string
-	reverseEdge  bool
-	insertMode   rdfMode
-
 	logger logging.Logger
 }
 
 func setupClient() *Client {
 	return &Client{
-		schemaCache:  make(map[string]Properties),
 		logger:       NewNilLogger(),
 		predicateKey: "name",
-		quirkName:    "quirk",
-		quirkRel:     "hasExact",
-		reverseEdge:  false,
-		insertMode:   auto,
 	}
 }
 
-func NewClient(schema string, confs ...ClientConfiguration) (*Client, error) {
+func NewClient(confs ...ClientConfiguration) *Client {
 	q := setupClient()
 
 	for _, c := range confs {
 		c(q)
 	}
 
-	err := q.setSchema(schema)
-	q.quirkID = aeshash(q.quirkName)
-	if err != nil {
-		q.logger.Warn("Schema was not processed correctly.", zap.Error(err))
-	}
-
-	return q, err
+	return q
 }
 
-func (c *Client) InitializeSchema(ctx context.Context, dg DgraphClient) error {
-	return dg.Alter(ctx, &api.Operation{Schema: c.schemaString})
-}
-
-func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Options) (uidMap map[string]string, err error) {
+func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) (uidMap map[string]string, err error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
 		return nil, &Error{
 			Msg:      msgTooManyMutationFields,
@@ -70,14 +43,10 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Options) (u
 	if o.SetMultiStruct != nil {
 		err = c.mutateMultiStruct(ctx, dg, o.SetMultiStruct, uidMap)
 	} else if o.SetSingleStruct != nil {
-		err = c.mutateSingleStruct(ctx, dg, o.SetSingleStruct, uidMap, &sync.Mutex{})
+		_, err = c.mutateSingleStruct(ctx, dg, o.SetSingleStruct, uidMap, &sync.Mutex{})
 	}
 
 	return
-}
-
-func (c *Client) GetSchema() Schema {
-	return c.schemaCache
 }
 
 func (c *Client) GetPredicateKey() string {
