@@ -2,48 +2,63 @@ package quirk
 
 import (
 	"context"
+	"io"
 	"sync"
 
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
-type Options struct {
-	SetMultiStruct  []interface{}
-	SetSingleStruct interface{}
-}
+// Exported structures for the Client to use.
+type (
+	// Operation is the main parameter used when calling quirk client methods.
+	Operation struct {
+		SetMultiStruct  []interface{}
+		SetSingleStruct interface{}
+	}
 
-type Schema map[string]Properties
+	// DgraphClient is used to mock out the client when testing.
+	DgraphClient interface {
+		Alter(context.Context, *api.Operation) error
+		NewTxn() *dgo.Txn
+	}
+)
 
-type Properties struct {
-	Upsert  bool
-	Lang    bool
-	Reverse bool
-	Index   indexType
-	DType   string
-}
+// non exported structures.
+type (
+	predValDat struct {
+		Predicate string
+		Value     interface{}
+		IsUpsert  bool
+	}
+	upsertResponse struct {
+		new        bool
+		err        error
+		identifier string
+		uid        string
+	}
+)
 
-type indexType struct {
-	IsIndex bool
-	DType   string
-}
+// interfaces used within for testing.
+type (
+	dgraphTxn interface {
+		Query(context.Context, string) (*api.Response, error)
+		Mutate(context.Context, *api.Mutation) (*api.Assigned, error)
+		Commit(context.Context) error
+		Discard(context.Context) error
+	}
+	builder interface {
+		io.Writer
+		String() string
+		Reset()
+	}
+)
 
-type mutateSingle func(context.Context, DgraphClient, interface{}, map[string]string, *sync.Mutex) error
+// tagOptions is used to identify the type of an optional quirk tag.
+type tagOptions string
 
-type rdfMode int
+// queryDecode is our type when unmarshalling a query response.
+type queryDecode map[string][]struct{ UID *string }
 
-type PredValDat struct {
-	Predicate string
-	Value     interface{}
-}
-
-type DgraphClient interface {
-	Alter(context.Context, *api.Operation) error
-	NewTxn() *dgo.Txn
-}
-
-type DgraphTxn interface {
-	Mutate(context.Context, *api.Mutation) (*api.Assigned, error)
-	Commit(context.Context) error
-	Discard(context.Context) error
-}
+// mutateSingle is used to pass into a worker function to call.
+type mutateSingle func(context.Context, DgraphClient, interface{}, map[string]string, *sync.Mutex) (bool, error)
