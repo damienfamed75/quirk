@@ -15,12 +15,16 @@ const (
 
 	// Tags appear just after the Datatype.
 	tagIndex   = "@index"
-	tagLang    = "@lang"
 	tagReverse = "@reverse"
 
 	// Directives that appear after tags.
-	dirUpsert = "@upsert"
-	dirCount  = "@count"
+	dirUpsert        = "@upsert"
+	dirCount         = "@count"
+	dirIgnoreReflext = "@ignorereflex"
+	dirNormalize     = "@normalize"
+	dirCascade       = "@cascade"
+	dirLang          = "@lang"
+	dirFilter        = "@filter"
 
 	// string specific tokenizers.
 	tokenExact    = "exact"
