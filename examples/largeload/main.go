@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"text/tabwriter"
 
 	"github.com/damienfamed75/quirk"
 
@@ -14,12 +17,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	schema = `
-	name: string @index(hash) @upsert .
-	age: string .
-	`
-)
+var drop bool
 
 // Person is a way to capture when we need to implement
 // a true upsert functionality for when we're dealing with
@@ -30,6 +28,9 @@ type Person struct {
 }
 
 func main() {
+	flag.BoolVar(&drop, "d", false, "Drop-All before running example.")
+	flag.Parse()
+
 	// Dial for Dgraph using grpc.
 	conn, err := grpc.Dial("127.0.0.1:9080", grpc.WithInsecure())
 	if err != nil {
@@ -41,20 +42,24 @@ func main() {
 	dg := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// Drop all pre-existing data in the graph.
-	err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
-	if err != nil {
-		log.Fatalf("Alteration error with DropAll [%v]\n", err)
+	if drop {
+		err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
+		if err != nil {
+			log.Fatalf("Alteration error with DropAll [%v]\n", err)
+		}
 	}
 
 	// Alter the schema to be equal to our schema variable.
-	err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
+	err = dg.Alter(context.Background(), &api.Operation{Schema: `
+		name: string @index(hash) @upsert .
+		age: string .
+	`})
 	if err != nil {
 		log.Fatalf("Alteration error with setting schema [%v]\n", err)
 	}
 
-	// Create the Quirk Client with our schema.
-	// The schema is read and processed so the client knows
-	// which predicates use the @upsert directive.
+	// Create the Quirk Client with a debug logger.
+	// The debug logger is just for demonstration purposes or for debugging.
 	c := quirk.NewClient(quirk.WithLogger(quirk.NewDebugLogger()))
 
 	// In order to insert multiple nodes using the quirk client
@@ -86,14 +91,23 @@ func main() {
 	// Use the quirk client to insert multiple nodes at a time
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
-
-	// We're not storing the uidMap for successful nodes, because
-	// the nodes that we have so many nodes that are being inserted
-	// and we just want to focus on the failed upserts.
-	_, err = c.InsertNode(context.Background(), dg,
-		&quirk.Operation{SetMultiStruct: people},
-	)
+	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
+		SetMultiStruct: people})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 4, 1, ' ',
+		tabwriter.AlignRight|tabwriter.Debug)
+	var count int
+
+	for k, v := range uidMap {
+		count++
+		if count%3 == 0 {
+			fmt.Fprintf(w, "%s\t%s\t\n", k, v)
+		} else {
+			fmt.Fprintf(w, "%s\t%s\t", k, v)
+		}
+	}
+	w.Flush()
 }

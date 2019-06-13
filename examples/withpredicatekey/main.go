@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 
 	"github.com/damienfamed75/quirk"
@@ -11,13 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	schema = `
-	username: string @index(hash) @upsert .
-	company: string @index(hash) .
-	website: string @index(hash) @upsert .
-	`
-)
+var drop bool
 
 // Profile is our way of showing off that we don't
 // need a "name" predicate for custom keys in the returned
@@ -29,6 +24,9 @@ type Profile struct {
 }
 
 func main() {
+	flag.BoolVar(&drop, "d", false, "Drop-All before running example.")
+	flag.Parse()
+
 	// Dial for Dgraph using grpc.
 	conn, err := grpc.Dial("127.0.0.1:9080", grpc.WithInsecure())
 	if err != nil {
@@ -40,13 +38,19 @@ func main() {
 	dg := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// Drop all pre-existing data in the graph.
-	err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
-	if err != nil {
-		log.Fatalf("Alteration error with DropAll [%v]\n", err)
+	if drop {
+		err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
+		if err != nil {
+			log.Fatalf("Alteration error with DropAll [%v]\n", err)
+		}
 	}
 
 	// Alter the schema to be equal to our schema variable.
-	err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
+	err = dg.Alter(context.Background(), &api.Operation{Schema: `
+		username: string @index(hash) @upsert .
+		company: string @index(hash) .
+		website: string @index(hash) @upsert .
+	`})
 	if err != nil {
 		log.Fatalf("Alteration error with setting schema [%v]\n", err)
 	}
@@ -59,19 +63,19 @@ func main() {
 
 	// In order to insert multiple nodes using the quirk client
 	// you must use a slice of interface to as the argument.
-	var profiles []interface{}
-
-	// One of the two profiles will fail because they both share the same username.
-	profiles = append(profiles, &Profile{Username: "damienstamates", Company: "NM", Website: "northwesternmutual.com"})
-	profiles = append(profiles, &Profile{Username: "barum", Company: "NM", Website: "northwesternmutual.com"})
-	profiles = append(profiles, &Profile{Username: "gevuong", Company: "NM", Website: "northwesternmutual.com"})
-	profiles = append(profiles, &Profile{Username: "damienstamates", Company: "FOXCONN", Website: "foxconn.com"})
-	profiles = append(profiles, &Profile{Username: "angad", Company: "NM", Website: "northwesternmutual.com"})
-	profiles = append(profiles, &Profile{Username: "cyberninja89", Company: "NTT", Website: "nttdata.com"})
-	profiles = append(profiles, &Profile{Username: "solarlune", Company: "N/A", Website: "solarlune.com"})
-	profiles = append(profiles, &Profile{Username: "happycow77", Company: "SCHUBERT", Website: "shuberthartfordtheater.com"})
-	profiles = append(profiles, &Profile{Username: "cyberninja89", Company: "FOXCONN", Website: "foxconn.com"})
-	profiles = append(profiles, &Profile{Username: "barum", Company: "FOXCONN", Website: "foxconn.com"})
+	// Note: Only four of these nodes should be entered into the graph.
+	var profiles = []interface{}{
+		&Profile{Username: "damienstamates", Company: "NM", Website: "northwesternmutual.com"},
+		&Profile{Username: "barum", Company: "NM", Website: "northwesternmutual.com"},
+		&Profile{Username: "gevuong", Company: "NM", Website: "northwesternmutual.com"},
+		&Profile{Username: "damienstamates", Company: "FOXCONN", Website: "foxconn.com"},
+		&Profile{Username: "angad", Company: "NM", Website: "northwesternmutual.com"},
+		&Profile{Username: "cyberninja89", Company: "NTT", Website: "nttdata.com"},
+		&Profile{Username: "solarlune", Company: "N/A", Website: "solarlune.com"},
+		&Profile{Username: "happycow77", Company: "SCHUBERT", Website: "shuberthartfordtheater.com"},
+		&Profile{Username: "cyberninja89", Company: "FOXCONN", Website: "foxconn.com"},
+		&Profile{Username: "barum", Company: "FOXCONN", Website: "foxconn.com"},
+	}
 
 	// Use the quirk client to insert multiple nodes at a time
 	// all while making sure that any upsert predicates are failed

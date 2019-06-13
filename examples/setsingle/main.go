@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"flag"
 
 	"github.com/damienfamed75/quirk"
 
@@ -11,24 +12,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	schema = `
-	name: string @index(hash) .
-	ssn: string @index(hash) @upsert .
-	policy: string @index(hash) @upsert .
-	`
-)
+var drop bool
 
-// Person is a way to capture when we need to implement
-// a true upsert functionality for when we're dealing with
-// social security numbers and policy numbers.
+// Person is the structure to hold the node's data.
+// When using quirk you must have tags associated with your fields.
+// The first quirk parameter is the name of the predicate in Dgraph.
+// The second parameter (which always is "unique") specifies if this
+// field should be unique throughout the graph.
 type Person struct {
 	Name   string `quirk:"name"`
-	SSN    string `quirk:"ssn"`
-	Policy string `quirk:"policy"`
+	SSN    string `quirk:"ssn,unique"`
+	Policy string `quirk:"policy,unique"`
 }
 
 func main() {
+	flag.BoolVar(&drop, "d", false, "Drop-All before running example.")
+	flag.Parse()
+
 	// Dial for Dgraph using grpc.
 	conn, err := grpc.Dial("127.0.0.1:9080", grpc.WithInsecure())
 	if err != nil {
@@ -40,39 +40,35 @@ func main() {
 	dg := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// Drop all pre-existing data in the graph.
-	// err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
-	// if err != nil {
-	// 	log.Fatalf("Alteration error with DropAll [%v]\n", err)
-	// }
+	if drop {
+		err = dg.Alter(context.Background(), &api.Operation{DropAll: true})
+		if err != nil {
+			log.Fatalf("Alteration error with DropAll [%v]\n", err)
+		}
+	}
 
 	// Alter the schema to be equal to our schema variable.
-	err = dg.Alter(context.Background(), &api.Operation{Schema: schema})
+	err = dg.Alter(context.Background(), &api.Operation{Schema: `
+		name: string @index(hash) .
+		ssn: string @index(hash) @upsert .
+		policy: string @index(hash) @upsert .
+	`})
 	if err != nil {
 		log.Fatalf("Alteration error with setting schema [%v]\n", err)
 	}
 
-	// Create the Quirk Client with our schema.
-	// The schema is read and processed so the client knows
-	// which predicates use the @upsert directive.
-	c, err := quirk.NewClient(schema)
+	// Create the Quirk Client with a debug logger.
+	// The debug logger is just for demonstration purposes or for debugging.
+	c := quirk.NewClient(quirk.WithLogger(quirk.NewDebugLogger()))
 	if err != nil {
 		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
 	}
 
-	// Use the quirk client to insert a single node
-	// and make sure that if any of the fields are upsert predicates
-	// to fail them on transaction and return promptly via the error.
-	uidMap, err := c.InsertNode(context.Background(), dg,
-		&quirk.Operation{SetSingleStruct: &Person{Name: "John", SSN: "126", Policy: "JKL"}},
-	)
+	// Use the quirk client to insert a single node.
+	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
+		SetSingleStruct: &Person{Name: "John", SSN: "126", Policy: "JKL"}})
 	if err != nil {
-		// If the error is a list of our failed upserts
-		// then let's print them out for fun.
-		if fUpsert, ok := err.(*quirk.FailedUpserts); ok {
-			printFailedUpserts(fUpsert)
-		} else {
-			log.Fatalf("Error when inserting nodes [%v]\n", err)
-		}
+		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
 
 	// Finally print out the successful UIDs.
@@ -85,11 +81,4 @@ func main() {
 	for k, v := range uidMap {
 		log.Printf("UIDMap: [%s] [%s]\n", k, v)
 	}
-}
-
-func printFailedUpserts(fUpsert *quirk.FailedUpserts) {
-	for _, upsert := range fUpsert.Upserts {
-		log.Printf("FailedUpsert: rdf[\n%v]\n", upsert.RDF)
-	}
-	log.Printf("Num of failed upserts [%d]\n", fUpsert.Len())
 }
