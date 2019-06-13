@@ -1,14 +1,11 @@
 package quirk
 
 const (
-	schemaDelimiter    = '.'
-	predicateDelimiter = ':'
-)
-
-const (
 	msgTooManyMutationFields = "Too many fields filled in QuirkMutation"
 	msgInvalidSchemaRead     = "Invalid schema caused reading error"
 	msgTransactionFailure    = "Transaction failure"
+	msgQueryingUnique        = "Dgraph querying error"
+	msgBuilderWriting        = "invalid pred[%#v] or val[%#v]"
 )
 
 const (
@@ -18,9 +15,10 @@ const (
 const tagUnique tagOptions = "unique"
 
 const (
-	emptyQuery = "{}"
-	whenRDF = `<%s> <when> "%d"^^<xs:int> .`
+	quirkTag     = "quirk"
+	emptyQuery   = "{}"
 	blankDefault = "data"
-	rdfBase = "_:%s <%s> %q .\n"
-	queryfunc = "%s(func: eq(%s, %q), first: 1){uid}\n"
+	whenRDF      = `<%s> <when> "%d"^^<xs:int> .`
+	rdfBase      = "_:%s <%s> %q .\n"
+	queryfunc    = "%s(func: eq(%s, %q), first: 1){uid}\n"
 )

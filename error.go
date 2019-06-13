@@ -28,7 +28,7 @@ type QueryError struct {
 	Msg      string
 	File     string
 	Function string
-	Query      string
+	Query    string
 }
 
 func (e *QueryError) Error() string {
