@@ -71,6 +71,8 @@ func TestMutationWorker(t *testing.T) {
 			time.Sleep(200 * time.Millisecond)
 
 			close(quit)
+			time.Sleep(100 * time.Millisecond)
+			read <- &testPersonCorrect
 			read <- &testPersonCorrect
 
 			close(read)
@@ -87,7 +89,6 @@ func TestMutationWorker(t *testing.T) {
 			// oof that's a lot of parameters...
 			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, uidMap, read, quit, done)
 
-			// close(quit)
 			read <- &testPersonCorrect
 
 			// So then the set to false won't come in too early.
