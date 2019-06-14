@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgraph-io/dgo"
 	. "github.com/franela/goblin"
+	"go.uber.org/zap/zapcore"
 )
 
 func BenchmarkSetupClient(b *testing.B) {
@@ -68,7 +69,7 @@ func TestNewClient(t *testing.T) {
 
 func TestInsertNode(t *testing.T) {
 	g := Goblin(t)
-	c := NewClient()
+	c := NewClient(WithLogger(NewCustomLogger([]byte("dpanic"), zapcore.EncoderConfig{})))
 	ctx := context.Background()
 
 	g.Describe("Single Struct", func() {
