@@ -1,6 +1,11 @@
-# quirk
+<p align="center"><img src="https://i.imgur.com/LcLsTX8.png" width="120"></p>
+<p align="center"><img src="https://i.imgur.com/L0QU8td.png" width="200"></p>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/damienfamed75/quirk)](https://goreportcard.com/report/github.com/damienfamed75/quirk) [![GoDoc](https://godoc.org/github.com/damienfamed75/quirk?status.svg)](https://godoc.org/github.com/damienfamed75/quirk) [![License](https://img.shields.io/github/license/damienfamed75/quirk.svg)](https://github.com/damienfamed75/quirk/blob/master/LICENSE)
+<p align="center">
+<a href="https://godoc.org/github.com/damienfamed75/quirk"><img src="https://godoc.org/github.com/damienfamed75/quirk?status.svg" alt="GoDoc" /></a>
+<a href="https://goreportcard.com/report/github.com/damienfamed75/quirk"><img src="https://goreportcard.com/badge/github.com/damienfamed75/quirk" alt="Go Report Card" /></a>
+<a href="https://github.com/damienfamed75/quirk/blob/master/LICENSE"><img src="https://img.shields.io/github/license/damienfamed75/quirk.svg" alt="License" /></a>
+</p>
 
 Quirk is a library used to seemlessly use upsert procedures in Dgraph without going through the hassle yourself.
 
