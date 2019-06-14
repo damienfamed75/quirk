@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/dgraph-io/dgo/protos/api"
+	"google.golang.org/grpc"
 )
 
 // testBuilder is used to mock out a strings.Builder
@@ -71,6 +72,35 @@ func (t *testTxn) Discard(context.Context) error {
 		return errors.New("DISCARD_ERROR")
 	}
 	return nil
+}
+
+type testDgraphClient struct {
+	queryResponse []byte
+	alterResponse error
+}
+
+func (*testDgraphClient) Login(context.Context, *api.LoginRequest, ...grpc.CallOption) (*api.Response, error) {
+	return &api.Response{}, nil
+}
+
+func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOption) (*api.Response, error) {
+	return &api.Response{Json: d.queryResponse}, nil
+}
+
+func (*testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Assigned, error) {
+	return &api.Assigned{}, nil
+}
+
+func (*testDgraphClient) Alter(context.Context, *api.Operation, ...grpc.CallOption) (*api.Payload, error) {
+	return &api.Payload{}, nil
+}
+
+func (*testDgraphClient) CommitOrAbort(context.Context, *api.TxnContext, ...grpc.CallOption) (*api.TxnContext, error) {
+	return &api.TxnContext{}, nil
+}
+
+func (*testDgraphClient) CheckVersion(context.Context, *api.Check, ...grpc.CallOption) (*api.Version, error) {
+	return &api.Version{}, nil
 }
 
 var (
