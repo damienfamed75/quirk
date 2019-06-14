@@ -32,7 +32,7 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 	return res.new, nil
 }
 
-func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat []*predValDat) *upsertResponse {
+func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs) *upsertResponse {
 	defer txn.Discard(ctx)
 
 	var builder strings.Builder
@@ -44,8 +44,8 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat []*predValDat
 
 	identifier := blankDefault
 	for _, d := range dat {
-		if d.Predicate == c.predicateKey {
-			identifier = fmt.Sprintf("%v", d.Value)
+		if d.predicate == c.predicateKey {
+			identifier = fmt.Sprintf("%v", d.value)
 		}
 	}
 
@@ -68,7 +68,7 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat []*predValDat
 
 func mutateNewNode(ctx context.Context, txn dgraphTxn, b builder, identifier string, dat []*predValDat) (string, error) {
 	for _, d := range dat {
-		fmt.Fprintf(b, rdfBase, identifier, d.Predicate, d.Value)
+		fmt.Fprintf(b, rdfBase, identifier, d.predicate, d.value)
 	}
 
 	mu := &api.Mutation{SetNquads: []byte(b.String())}

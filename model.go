@@ -27,9 +27,9 @@ type (
 // non exported structures.
 type (
 	predValDat struct {
-		Predicate string
-		Value     interface{}
-		IsUpsert  bool
+		predicate string
+		value     interface{}
+		isUnique  bool
 	}
 	upsertResponse struct {
 		new        bool
@@ -54,7 +54,22 @@ type (
 	}
 )
 
-// tagOptions is used to identify the type of an optional quirk tag.
+// predValPairs is used to sort out the upsert valued
+// predValDat from the slice.
+type predValPairs []*predValDat
+
+func (p predValPairs) unique() (pairs predValPairs) {
+	for _, v := range p {
+		if v.isUnique {
+			pairs = append(pairs, v)
+		}
+	}
+	return pairs
+}
+
+// Credit: The Go Authors @ "encoding/json"
+// tagOptions is the string following a comma in a struct field's "quirk"
+// tag, or the empty string. It does not include the leading comma.
 type tagOptions string
 
 // queryDecode is our type when unmarshalling a query response.
