@@ -1,25 +1,25 @@
 package quirk
 
 import (
-	"io"
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 )
 
-func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat []*predValDat) (string, error) {
+func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat predValPairs) (string, error) {
 	defer b.Reset()
 
 	var decode queryDecode
 
-	if err := executeQueryForUnique(ctx, txn, b, dat, &decode); err != nil {
+	if err := executeQuery(ctx, txn, b, dat, &decode); err != nil {
 		return "", err
 	}
-	
-	return assignUIDFromDecode(decode)
+
+	return findDecodedUID(decode)
 }
 
-func assignUIDFromDecode(decode queryDecode) (string, error) {
+func findDecodedUID(decode queryDecode) (string, error) {
 	for _, v := range decode {
 		if len(v) <= 1 != true {
 			return "", &Error{Msg: "INVALID LEN"}
@@ -35,36 +35,8 @@ func assignUIDFromDecode(decode queryDecode) (string, error) {
 	return "", nil
 }
 
-func createQuery(b io.Writer, dat []*predValDat) error {
-	if _, err := b.Write([]byte{'{'}); err != nil {
-		return err
-	}
-
-	// Loop through and add a new function per unique predicate.
-	for _, d := range dat {
-		if d.IsUpsert {
-			_, err := fmt.Fprintf(b, queryfunc, "f"+d.Predicate, d.Predicate, d.Value)
-			if err != nil {
-				return &Error{
-					ExtErr:   err,
-					Msg:      fmt.Sprintf("predicate[%#v] value[%#v]", d.Predicate, d.Value),
-					File:     "query.go",
-					Function: "createQuery",
-				}
-			}
-		}
-	}
-
-	// End the query.
-	if _, err := b.Write([]byte{'}'}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func executeQueryForUnique(ctx context.Context, txn dgraphTxn, b builder,
-	dat []*predValDat, decode *queryDecode) error {
+func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
+	dat predValPairs, decode *queryDecode) error {
 	if err := createQuery(b, dat); err != nil {
 		return err
 	}
@@ -76,13 +48,41 @@ func executeQueryForUnique(ctx context.Context, txn dgraphTxn, b builder,
 	resp, err := txn.Query(ctx, b.String())
 	if err != nil {
 		return &QueryError{
-			ExtErr: err, Query: b.String(),
 			File:     "query.go",
-			Function: "executeQueryForUnique",
+			Function: "executeQuery",
+			Msg:      msgQueryingUnique,
+			Query:    b.String(),
+			ExtErr:   err,
 		}
 	}
 
 	if err = json.Unmarshal(resp.GetJson(), decode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createQuery(b io.Writer, dat predValPairs) error {
+	if _, err := b.Write([]byte{'{'}); err != nil {
+		return err
+	}
+
+	// Loop through and add a new function per unique predicate.
+	for _, d := range dat.unique() {
+		_, err := fmt.Fprintf(b, queryfunc, "find"+d.predicate, d.predicate, d.value)
+		if err != nil { // returns quirk.Error for predicate and value context.
+			return &Error{
+				ExtErr:   err,
+				Msg:      fmt.Sprintf(msgBuilderWriting, d.predicate, d.value),
+				File:     "query.go",
+				Function: "createQuery",
+			}
+		}
+	}
+
+	// End the query.
+	if _, err := b.Write([]byte{'}'}); err != nil {
 		return err
 	}
 
