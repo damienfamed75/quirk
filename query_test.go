@@ -89,7 +89,8 @@ func TestFindDecodeUID(t *testing.T) {
 			s, err := findDecodedUID(emptyDecode)
 
 			g.Assert(s).Equal("")
-			g.Assert(err).Equal(&Error{Msg: "INVALID LEN"})
+			g.Assert(err).Equal(&QueryError{
+				Msg: msgTooManyResponses, Function: "findDecodedUID"})
 		})
 
 		g.It("Should error with nil UID", func() {
@@ -100,7 +101,8 @@ func TestFindDecodeUID(t *testing.T) {
 			s, err := findDecodedUID(emptyDecode)
 
 			g.Assert(s).Equal("")
-			g.Assert(err).Equal(&Error{Msg: "UID NIL"})
+			g.Assert(err).Equal(&QueryError{
+				Msg: msgNilUID, Function: "findDecodedUID"})
 		})
 
 		g.It("Should return valid UID", func() {
@@ -146,9 +148,7 @@ func TestExecuteQuery(t *testing.T) {
 			g.Assert(executeQuery(ctx, &testTxn{failOn: 1},
 				&testBuilder{}, predValPairs{}, &emptyDecode)).
 				Equal(&QueryError{
-					File:     "query.go",
 					Function: "executeQuery",
-					Msg:      msgQueryingUnique,
 					Query:    "",
 					ExtErr:   errors.New("QUERY_ERROR"),
 				})
@@ -191,10 +191,9 @@ func TestCreateQuery(t *testing.T) {
 		g.It("Should error when builder fails when adding unique predicates", func(done Done) {
 			go func() {
 				g.Assert(createQuery(&testBuilder{failOn: 2}, testPredValCorrect)).
-					Equal(&Error{
+					Equal(&QueryError{
 						ExtErr:   errors.New("WRITE_ERROR"),
 						Msg:      fmt.Sprintf(msgBuilderWriting, "username", "damienstamates"),
-						File:     "query.go",
 						Function: "createQuery",
 					})
 				done()

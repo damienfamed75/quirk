@@ -4,8 +4,9 @@ const (
 	msgTooManyMutationFields = "Too many fields filled in QuirkMutation"
 	msgInvalidSchemaRead     = "Invalid schema caused reading error"
 	msgTransactionFailure    = "Transaction failure"
-	msgQueryingUnique        = "Dgraph querying error"
 	msgBuilderWriting        = "invalid pred[%#v] or val[%#v]"
+	msgTooManyResponses      = "Too many responses from query for unique nodes"
+	msgNilUID                = "*string was nil in response"
 )
 
 const (

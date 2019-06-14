@@ -23,24 +23,31 @@ func (e *Error) Error() string {
 	)
 }
 
+// QueryError is used for functions in the query.go file.
 type QueryError struct {
 	ExtErr   error
 	Msg      string
-	File     string
 	Function string
 	Query    string
 }
 
-func (e *QueryError) Error() string {
-	if e.ExtErr != nil {
-		return fmt.Sprintf("%s:%s: Query[%s] external_err[%v]",
-			e.Function, e.File, e.Query, e.ExtErr,
+func (e *QueryError) Error() (res string) {
+	switch {
+	case e.ExtErr != nil:
+		res = fmt.Sprintf("%s:query.go: Query[%s] external_err[%v]",
+			e.Function, e.Query, e.ExtErr,
+		)
+	case e.Msg != "":
+		res = fmt.Sprintf("%s:query.go: Msg[%s]",
+			e.Function, e.Msg,
+		)
+	default:
+		res = fmt.Sprintf("%s:query.go: Query[%s]",
+			e.Function, e.Query,
 		)
 	}
 
-	return fmt.Sprintf("%s:%s: Query[%s]",
-		e.Function, e.File, e.Query,
-	)
+	return
 }
 
 type TransactionError struct {
