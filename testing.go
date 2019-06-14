@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/y"
 	"google.golang.org/grpc"
 )
 
@@ -77,6 +78,7 @@ func (t *testTxn) Discard(context.Context) error {
 type testDgraphClient struct {
 	queryResponse []byte
 	alterResponse error
+	shouldAbort   bool
 }
 
 func (*testDgraphClient) Login(context.Context, *api.LoginRequest, ...grpc.CallOption) (*api.Response, error) {
@@ -88,6 +90,9 @@ func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOpti
 }
 
 func (d *testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Assigned, error) {
+	if d.shouldAbort {
+		return &api.Assigned{}, y.ErrAborted
+	}
 	return &api.Assigned{Uids: map[string]string{"damienstamates": "0x1"}}, nil
 }
 

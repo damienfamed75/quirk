@@ -27,7 +27,6 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 		m     sync.Mutex
 		quit  = make(chan bool)
 		read  = make(chan interface{}, len(dat))
-		write = make(chan map[string]string, len(dat))
 		done  = make(chan error)
 	)
 
@@ -39,7 +38,7 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 	for i := 0; i < limit; i++ {
 		wg.Add(1)
 		go mutationWorker(ctx, dg, &wg, &m, c.mutateSingleStruct, c.logger,
-			uidMap,read, quit, done)
+			uidMap, read, quit, done)
 	}
 
 	// Send data to workers via channel.
@@ -49,23 +48,21 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 
 	close(read)
 
-	return launchWorkers(limit, &wg, write, done, quit)
+	return launchWorkers(limit, &wg, done, quit)
 }
 
-func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
+func launchWorkers(limit int, wg *sync.WaitGroup,
 	done chan error, quit chan bool) error {
 
 	var err error
 	// Wait for workers to finish.
 	// receive results from channel.
 	for i := 0; i < limit; i++ {
-		select {
-		case werr := <-done:
-			if werr != nil {
-				err = werr
-				close(quit)
-				i = limit
-			}
+		werr := <-done
+		if werr != nil {
+			err = werr
+			close(quit)
+			i = limit
 		}
 	}
 
@@ -75,7 +72,7 @@ func launchWorkers(limit int, wg *sync.WaitGroup, write chan map[string]string,
 }
 
 func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
-	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger, 
+	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger,
 	uidMap map[string]string, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()
@@ -89,7 +86,7 @@ ReadLoop:
 	Forever:
 		for {
 			if time.Since(lastStatus) > 100*time.Millisecond {
-				logger.Debug("Insert status", 
+				logger.Debug("Insert status",
 					zap.Uint64("Success", atomic.LoadUint64(&successCount)),
 					zap.Uint64("Retries", atomic.LoadUint64(&retryCount)))
 				lastStatus = time.Now()
@@ -106,14 +103,12 @@ ReadLoop:
 				}
 				break Forever
 			case y.ErrAborted:
-				// pass
+				// If the transaction was aborted then retry.
+				atomic.AddUint64(&retryCount, 1)
 			default:
 				err = mutErr
 				break ReadLoop
 			}
-
-			// If the transaction was aborted then retry.
-			atomic.AddUint64(&retryCount, 1)
 		}
 	}
 
