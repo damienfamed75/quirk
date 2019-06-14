@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// Error is a general error that isn't super specific. Just used for when
+// there needs to be more context relating to an error.
 type Error struct {
 	ExtErr   error
 	Msg      string
@@ -50,6 +52,7 @@ func (e *QueryError) Error() (res string) {
 	return
 }
 
+// TransactionError is for when a transaction fails during a mutation.
 type TransactionError struct {
 	ExtErr   error
 	Msg      string
