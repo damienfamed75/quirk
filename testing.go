@@ -87,8 +87,8 @@ func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOpti
 	return &api.Response{Json: d.queryResponse}, nil
 }
 
-func (*testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Assigned, error) {
-	return &api.Assigned{}, nil
+func (d *testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Assigned, error) {
+	return &api.Assigned{Uids: map[string]string{"damienstamates": "0x1"}}, nil
 }
 
 func (*testDgraphClient) Alter(context.Context, *api.Operation, ...grpc.CallOption) (*api.Payload, error) {
