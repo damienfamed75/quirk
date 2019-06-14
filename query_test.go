@@ -35,7 +35,7 @@ func BenchmarkFindDecodedUID(b *testing.B) {
 	emptyDecode := make(queryDecode)
 
 	emptyDecode["a"] = []struct{ UID *string }{
-		struct{ UID *string }{UID: &uid},
+		{UID: &uid},
 	}
 
 	for i := 0; i < b.N; i++ {
@@ -82,8 +82,8 @@ func TestFindDecodeUID(t *testing.T) {
 
 		g.It("Should error with empty struct slice", func() {
 			emptyDecode["a"] = []struct{ UID *string }{
-				struct{ UID *string }{UID: new(string)},
-				struct{ UID *string }{UID: new(string)},
+				{UID: new(string)},
+				{UID: new(string)},
 			}
 
 			s, err := findDecodedUID(emptyDecode)
@@ -95,7 +95,7 @@ func TestFindDecodeUID(t *testing.T) {
 
 		g.It("Should error with nil UID", func() {
 			emptyDecode["a"] = []struct{ UID *string }{
-				struct{ UID *string }{UID: nil},
+				{UID: nil},
 			}
 
 			s, err := findDecodedUID(emptyDecode)
@@ -108,7 +108,7 @@ func TestFindDecodeUID(t *testing.T) {
 		g.It("Should return valid UID", func() {
 			uid := "0x1"
 			emptyDecode["a"] = []struct{ UID *string }{
-				struct{ UID *string }{UID: &uid},
+				{UID: &uid},
 			}
 
 			s, err := findDecodedUID(emptyDecode)
