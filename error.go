@@ -56,19 +56,18 @@ func (e *QueryError) Error() (res string) {
 type TransactionError struct {
 	ExtErr   error
 	Msg      string
-	File     string
 	Function string
 	RDF      string
 }
 
 func (e *TransactionError) Error() string {
 	if e.ExtErr != nil {
-		return fmt.Sprintf("%s:%s: RDF[%s] external_err[%v]",
-			e.Function, e.File, e.RDF, e.ExtErr,
+		return fmt.Sprintf("%s:mutate_single.go: Msg[%s] RDF[%s] external_err[%v]",
+			e.Function, e.Msg, e.RDF, e.ExtErr,
 		)
 	}
 
-	return fmt.Sprintf("%s:%s: RDF[%s]",
-		e.Function, e.File, e.RDF,
+	return fmt.Sprintf("%s:mutate_single.go: Msg[%s] RDF[%s]",
+		e.Function, e.Msg, e.RDF,
 	)
 }
