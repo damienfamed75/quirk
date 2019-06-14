@@ -2,10 +2,11 @@ package quirk
 
 const (
 	msgTooManyMutationFields = "Too many fields filled in QuirkMutation"
-	msgInvalidSchemaRead     = "Invalid schema caused reading error"
 	msgTransactionFailure    = "Transaction failure"
-	msgBuilderWriting        = "invalid pred[%#v] or val[%#v]"
+	msgInvalidSchemaRead     = "Invalid schema caused reading error"
 	msgTooManyResponses      = "Too many responses from query for unique nodes"
+	msgMutationHadNoUID      = "UID was not found in the mutation response"
+	msgBuilderWriting        = "invalid pred[%#v] or val[%#v]"
 	msgNilUID                = "*string was nil in response"
 )
 
