@@ -7,6 +7,9 @@ import (
 	"io"
 )
 
+// queryUID builds a query, executes it to find any unique marked predicates.
+// Then sifts through the response to see if any UIDs were returned.
+// Finally returns either a uid or an empty string if nothing was found.
 func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat predValPairs) (string, error) {
 	defer b.Reset() // reset the strings builder.
 
@@ -21,6 +24,9 @@ func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat predValPairs) (
 	return findDecodedUID(decode)
 }
 
+// findDecodeUID loops through the decoded response and tries to find
+// any UIDs. If any are found then they are returned. Otherwise
+// this function will just return an empty string.
 func findDecodedUID(decode queryDecode) (string, error) {
 	for _, v := range decode {
 		if len(v) > 1 { // if there are too many responses.
@@ -39,16 +45,21 @@ func findDecodedUID(decode queryDecode) (string, error) {
 	return "", nil
 }
 
+// executeQuery calls to create a Query based on the unique predicates sent in
+// and then executes it using the given transaction.
 func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
 	dat predValPairs, decode *queryDecode) error {
+	// Write a query that finds the marked unique predicates to the builder.
 	if err := createQuery(b, dat); err != nil {
 		return err
 	}
 
+	// If the query is empty then return nil right away.
 	if b.String() == emptyQuery {
 		return nil
 	}
 
+	// Execute the query with the given transaction.
 	resp, err := txn.Query(ctx, b.String())
 	if err != nil {
 		return &QueryError{
@@ -58,6 +69,7 @@ func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
 		}
 	}
 
+	// Unmarshal the response into the given decode object.
 	if err = json.Unmarshal(resp.GetJson(), decode); err != nil {
 		return &QueryError{
 			Function: "executeQuery",
@@ -68,6 +80,8 @@ func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
 	return nil
 }
 
+// createQuery will loop through the unique predicates and write the query
+// to the given io.Writer.
 func createQuery(b io.Writer, dat predValPairs) error {
 	if _, err := b.Write([]byte{'{'}); err != nil {
 		return err

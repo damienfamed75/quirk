@@ -2,7 +2,6 @@ package quirk
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -35,13 +34,17 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg DgraphClient,
 func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs) *upsertResponse {
 	defer txn.Discard(ctx)
 
+	// Pass this builder around to other functions for less mem alloc.
 	var builder strings.Builder
 
+	// Query to find if there are pre existing nodes with the unique predicates.
 	uid, err := queryUID(ctx, txn, &builder, dat)
 	if err != nil {
 		return &upsertResponse{err: err}
 	}
 
+	// Check if the given data contains the quirk client predicateKey. If not
+	// then it is defaulted to "data"
 	identifier := blankDefault
 	for _, d := range dat {
 		if d.predicate == c.predicateKey {
@@ -49,6 +52,7 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs)
 		}
 	}
 
+	// If the UID was not found by our query then mutate to add a new node.
 	var new bool
 	if uid == "" {
 		new = true
@@ -66,20 +70,24 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs)
 	}
 }
 
-func mutateNewNode(ctx context.Context, txn dgraphTxn, b builder, identifier string, dat []*predValDat) (string, error) {
+// mutateNewNode will build a mutation RDF with the builder and will then
+// execute it using the given transaction. Once executed it will return the UID.
+func mutateNewNode(ctx context.Context, txn dgraphTxn, b builder,
+	identifier string, dat []*predValDat) (string, error) {
 	for _, d := range dat {
 		fmt.Fprintf(b, rdfBase, identifier, d.predicate, d.value)
 	}
 
-	mu := &api.Mutation{SetNquads: []byte(b.String())}
-	assigned, err := txn.Mutate(ctx, mu)
+	// Use our transaction to execute a mutation to add our new node.
+	assigned, err := txn.Mutate(ctx, &api.Mutation{SetNquads: []byte(b.String())})
 	if err != nil {
 		return "", err
 	}
 
 	uid := assigned.GetUids()[identifier]
 	if uid == "" {
-		return "", errors.New("UID not received")
+		return "", &TransactionError{
+			Msg: msgMutationHadNoUID, Function: "mutateNewNode", RDF: b.String()}
 	}
 
 	return uid, nil
