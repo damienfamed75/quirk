@@ -56,13 +56,13 @@ func TestTransactionError(t *testing.T) {
 		g.It("with external error", func() {
 			e := &TransactionError{ExtErr: errors.New("err")}
 			g.Assert(e.Error()).
-				Equal(":: RDF[] external_err[err]")
+				Equal(":mutate_single.go: Msg[] RDF[] external_err[err]")
 		})
 
 		g.It("without external error", func() {
 			e := &TransactionError{}
 			g.Assert(e.Error()).
-				Equal(":: RDF[]")
+				Equal(":mutate_single.go: Msg[] RDF[]")
 		})
 	})
 }
