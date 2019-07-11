@@ -33,7 +33,7 @@ const (
 
 	// XML Datatypes.
 	xsInt   = xsInit + "<xs:int>"
-	xsBool  = xsInit + "<xs:bool>"
+	xsBool  = xsInit + "<xs:boolean>"
 	xsFloat = xsInit + "<xs:float>"
 
 	// unused at the moment.
