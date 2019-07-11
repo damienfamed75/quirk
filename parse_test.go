@@ -73,3 +73,66 @@ func TestParseTag(t *testing.T) {
 		})
 	})
 }
+
+func TestCheckType(t *testing.T) {
+	g := Goblin(t)
+
+	g.Describe("XML Datatype", func() {
+		g.It("Should be an int with int", func() {
+			var a int
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsInt)
+		})
+		g.It("Should be an int with int64", func() {
+			var a int64
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsInt)
+		})
+		g.It("Should be an int with int32", func() {
+			var a int32
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsInt)
+		})
+		g.It("Should be an int with int16", func() {
+			var a int16
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsInt)
+		})
+		g.It("Should be bool with bool", func() {
+			var a bool
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsBool)
+		})
+		g.It("Should be float with float32", func() {
+			var a float32
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsFloat)
+		})
+		g.It("Should be float with float64", func() {
+			var a float64
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsFloat)
+		})
+		g.It("Should be empty with string", func() {
+			var a string
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal("")
+		})
+	})
+}
