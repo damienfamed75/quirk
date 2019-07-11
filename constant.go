@@ -21,6 +21,22 @@ const (
 	emptyQuery   = "{}"
 	blankDefault = "data"
 	whenRDF      = `<%s> <when> "%d"^^<xs:int> .`
-	rdfBase      = "_:%s <%s> %q .\n"
+	rdfBase      = "_:%s <%s> \"%v\""
+	rdfEnd       = " .\n"
 	queryfunc    = "%s(func: eq(%s, %q), first: 1){uid}\n"
+)
+
+const (
+	// xsInit is used to indicate to Dgraph that we are explicitly
+	// using a certain datatype in the RDF.
+	xsInit = "^^"
+
+	// XML Datatypes.
+	xsInt   = xsInit + "<xs:int>"
+	xsBool  = xsInit + "<xs:bool>"
+	xsFloat = xsInit + "<xs:float>"
+
+	// unused at the moment.
+	xsString   = xsInit + "<xs:string>"
+	xsDateTime = xsInit + "<xs:date>"
 )

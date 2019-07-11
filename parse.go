@@ -45,3 +45,26 @@ func reflectMaps(d interface{}) predValPairs {
 
 	return predVal
 }
+
+// checkType will return an XML datatype tag if
+// any valid datatypes have are applicable.
+func checkType(val interface{}) string {
+	switch val.(type) {
+	case int64: // int64 gets handled as a normal int.
+		return xsInt
+	case int32: // int32 gets handled as a normal int.
+		return xsInt
+	case int16:
+		return xsInt
+	case int:
+		return xsInt
+	case bool:
+		return xsBool
+	case float32: // float32 gets handled as a general float.
+		return xsFloat
+	case float64: // float64 gets handled as a general float.
+		return xsFloat
+	}
+
+	return ""
+}

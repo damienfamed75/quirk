@@ -75,7 +75,9 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs)
 func mutateNewNode(ctx context.Context, txn dgraphTxn, b builder,
 	identifier string, dat []*predValDat) (string, error) {
 	for _, d := range dat {
-		fmt.Fprintf(b, rdfBase, identifier, d.predicate, d.value)
+		// get any optional XML datatype knowledge based on the value.
+		opt := checkType(d.value)
+		fmt.Fprintf(b, rdfBase+opt+rdfEnd, identifier, d.predicate, d.value)
 	}
 
 	// Use our transaction to execute a mutation to add our new node.
