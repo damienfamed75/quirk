@@ -24,7 +24,8 @@ func parseTag(tag string) (string, tagOptions) {
 // whether it is a unique tag to the returning predicate:value data slice.
 func reflectMaps(d interface{}) predValPairs {
 	elem := reflect.ValueOf(d).Elem()
-	predVal := make(predValPairs, elem.NumField())
+	numFields := elem.NumField()
+	predVal := make(predValPairs, numFields)
 
 	var (
 		tag string     // stores the name of the field in Dgraph.
@@ -32,7 +33,7 @@ func reflectMaps(d interface{}) predValPairs {
 	)
 
 	// loop through elements of struct.
-	for i := 0; i < elem.NumField(); i++ {
+	for i := 0; i < numFields; i++ {
 		tag, opt = parseTag(reflect.TypeOf(d).Elem().Field(i).Tag.Get(quirkTag))
 
 		// Add the predicate and value to the slice.
@@ -41,6 +42,39 @@ func reflectMaps(d interface{}) predValPairs {
 			value:     elem.Field(i).Interface(),
 			isUnique:  opt == tagUnique, // if the second option is "unique"
 		}
+	}
+
+	return predVal
+}
+
+func dynamicMapToPredValPairs(d map[string]interface{}) predValPairs {
+	predVal := make(predValPairs, len(d))
+
+	var i int
+
+	for k, v := range d {
+		predVal[i] = &predValDat{
+			predicate: k,
+			value:     v,
+		}
+		i++
+	}
+
+	return predVal
+}
+
+func mapToPredValPairs(d map[string]string) predValPairs {
+	predVal := make(predValPairs, len(d))
+
+	var i int // counter for the predVal slice.
+
+	// loop through elements of map.
+	for k, v := range d {
+		predVal[i] = &predValDat{
+			predicate: k,
+			value:     v,
+		}
+		i++
 	}
 
 	return predVal

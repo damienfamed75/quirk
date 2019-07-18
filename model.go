@@ -15,6 +15,8 @@ type (
 	Operation struct {
 		SetMultiStruct  []interface{}
 		SetSingleStruct interface{}
+		SetStringMap    map[string]string
+		SetDynamicMap   map[string]interface{}
 	}
 
 	// DgraphClient is used to mock out the client when testing.

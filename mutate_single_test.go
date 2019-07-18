@@ -77,14 +77,14 @@ func TestTryUpsert(t *testing.T) {
 	})
 }
 
-func TestMutateNewNode(t *testing.T) {
+func TestSetNewNode(t *testing.T) {
 	g := Goblin(t)
 
 	g.Describe("tryUpsert", func() {
 		ctx := context.Background()
 
 		g.It("Should not error", func() {
-			s, err := mutateNewNode(ctx, &testTxn{
+			s, err := setNewNode(ctx, &testTxn{
 				jsonOutput: testValidJSONOutput},
 				&testBuilder{}, "a", testPredValCorrect)
 
@@ -93,7 +93,7 @@ func TestMutateNewNode(t *testing.T) {
 		})
 
 		g.It("Should error", func() {
-			s, err := mutateNewNode(ctx, &testTxn{
+			s, err := setNewNode(ctx, &testTxn{
 				jsonOutput: testValidJSONOutput},
 				&testBuilder{}, "b", testPredValCorrect)
 
