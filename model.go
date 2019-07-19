@@ -13,10 +13,28 @@ import (
 type (
 	// Operation is the main parameter used when calling quirk client methods.
 	Operation struct {
-		SetMultiStruct  []interface{}
-		SetSingleStruct interface{}
-		SetStringMap    map[string]string
-		SetDynamicMap   map[string]interface{}
+		SetMultiStruct     []interface{}
+		SetSingleStruct    interface{}
+		SetStringMap       map[string]string
+		SetDynamicMap      map[string]interface{}
+		SetSingleDupleNode *DupleNode
+		SetMultiDupleNode  []DupleNode
+	}
+
+	DupleNode struct {
+		Name   string
+		Duples []Duple
+	}
+
+	// Duple is a structural way of giving the quirk client enough information
+	// about a node to create triples and insert them into Dgraph.
+	Duple struct {
+		// Predicate acts as a key.
+		Predicate string
+		// Object is the data representing the predicate.
+		Object interface{}
+		// IsUnique stores whether or not to treat this as an upsert or not.
+		IsUnique bool
 	}
 
 	// DgraphClient is used to mock out the client when testing.
