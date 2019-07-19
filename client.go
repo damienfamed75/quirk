@@ -51,14 +51,17 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 
 	uidMap = make(map[string]string)
 
-	if o.SetMultiStruct != nil {
+	switch {
+	case o.SetMultiStruct != nil:
 		err = c.mutateMultiStruct(ctx, dg, o.SetMultiStruct, uidMap)
-	} else if o.SetSingleStruct != nil {
+	case o.SetSingleStruct != nil:
 		_, err = c.mutateSingleStruct(ctx, dg, o.SetSingleStruct, uidMap, &sync.Mutex{})
-	} else if o.SetStringMap != nil {
+	case o.SetDynamicMap != nil:
 		_, err = c.mutateStringMap(ctx, dg, o.SetStringMap, uidMap, &sync.Mutex{})
-	} else if o.SetDynamicMap != nil {
+	case o.SetStringMap != nil:
 		_, err = c.mutateDynamicMap(ctx, dg, o.SetDynamicMap, uidMap, &sync.Mutex{})
+	case o.SetSingleDupleNode != nil:
+		_, err = c.mutateSingleDupleNode(ctx, dg, o.SetSingleDupleNode, uidMap, &sync.Mutex{})
 	}
 
 	return

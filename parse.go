@@ -47,11 +47,15 @@ func reflectMaps(d interface{}) predValPairs {
 	return predVal
 }
 
+// dynamicMapToPredValPairs may seem like a duplicate of mapToPredValPairs
+// but this one uses a map[string]interface{} instead of a map[string]string
+// which in Go there is currently no way to have them be interchangeable.
 func dynamicMapToPredValPairs(d map[string]interface{}) predValPairs {
 	predVal := make(predValPairs, len(d))
 
-	var i int
+	var i int // counter for the predVal slice.
 
+	// loop through elements of map.
 	for k, v := range d {
 		predVal[i] = &predValDat{
 			predicate: k,
@@ -63,6 +67,9 @@ func dynamicMapToPredValPairs(d map[string]interface{}) predValPairs {
 	return predVal
 }
 
+// mapToPredValPairs may seem like a duplicate of dynamicMapToPredValPairs
+// but this one uses a map[string]string instead of a map[string]interface{}
+// which in Go there is currently no way to have them be interchangeable.
 func mapToPredValPairs(d map[string]string) predValPairs {
 	predVal := make(predValPairs, len(d))
 
@@ -88,7 +95,9 @@ func checkType(val interface{}) string {
 		return xsInt
 	case int32: // int32 gets handled as a normal int.
 		return xsInt
-	case int16:
+	case int16: // int16 gets handled as normal int.
+		return xsInt
+	case int8: // int8 gets handled as normal int.
 		return xsInt
 	case int:
 		return xsInt
