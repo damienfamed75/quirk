@@ -79,6 +79,8 @@ type (
 	}
 )
 
+// Unique will loop through the Duples and return a new slice
+// containing all duples that are marked as unique.
 func (d *DupleNode) Unique() (duples []Duple) {
 	for _, v := range d.Duples {
 		if v.IsUnique {
@@ -86,19 +88,6 @@ func (d *DupleNode) Unique() (duples []Duple) {
 		}
 	}
 	return duples
-}
-
-// predValPairs is used to sort out the upsert valued
-// predValDat from the slice.
-type predValPairs []*predValDat
-
-func (p predValPairs) unique() (pairs predValPairs) {
-	for _, v := range p {
-		if v.isUnique {
-			pairs = append(pairs, v)
-		}
-	}
-	return pairs
 }
 
 // Credit: The Go Authors @ "encoding/json"
