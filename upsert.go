@@ -2,11 +2,10 @@ package quirk
 
 import (
 	"context"
-	"fmt"
 	"strings"
 )
 
-func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs) *upsertResponse {
+func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat *DupleNode) *upsertResponse {
 	defer txn.Discard(ctx)
 
 	// Pass this builder around to other functions for less mem alloc.
@@ -21,10 +20,8 @@ func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat predValPairs)
 	// Check if the given data contains the quirk client predicateKey. If not
 	// then it is defaulted to "data"
 	identifier := blankDefault
-	for _, d := range dat {
-		if d.predicate == c.predicateKey {
-			identifier = fmt.Sprintf("%v", d.value)
-		}
+	if dat.Identifier != "" {
+		identifier = dat.Identifier
 	}
 
 	// If the UID was not found by our query then mutate to add a new node.
