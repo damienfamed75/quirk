@@ -12,6 +12,8 @@ import (
 // Exported structures for the Client to use.
 type (
 	// Operation is the main parameter used when calling quirk client methods.
+	// Note: only one of these should be filled at a time, because only one
+	// will be executed and taken care of as seen in client.go
 	Operation struct {
 		SetMultiStruct     []interface{}
 		SetSingleStruct    interface{}
@@ -21,9 +23,10 @@ type (
 		SetMultiDupleNode  []DupleNode
 	}
 
+	// DupleNode is the container for a duple node.
 	DupleNode struct {
-		Name   string
-		Duples []Duple
+		Identifier string
+		Duples     []Duple
 	}
 
 	// Duple is a structural way of giving the quirk client enough information
@@ -35,6 +38,8 @@ type (
 		Object interface{}
 		// IsUnique stores whether or not to treat this as an upsert or not.
 		IsUnique bool
+		// dataType stores the xml tag for the datatype.
+		dataType string
 	}
 
 	// DgraphClient is used to mock out the client when testing.
@@ -73,6 +78,15 @@ type (
 		Reset()
 	}
 )
+
+func (d *DupleNode) Unique() (duples []Duple) {
+	for _, v := range d.Duples {
+		if v.IsUnique {
+			duples = append(duples, v)
+		}
+	}
+	return duples
+}
 
 // predValPairs is used to sort out the upsert valued
 // predValDat from the slice.
