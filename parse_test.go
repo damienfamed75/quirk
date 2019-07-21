@@ -6,13 +6,13 @@ import (
 	. "github.com/franela/goblin"
 )
 
-func BenchmarkReflectMaps(b *testing.B) {
-	data := testPersonCorrect // from testing.go
+// func BenchmarkReflectMaps(b *testing.B) {
+// 	data := testPersonCorrect // from testing.go
 
-	for i := 0; i < b.N; i++ {
-		_ = reflectMaps(&data)
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		_ = reflectMaps(&data)
+// 	}
+// }
 
 func BenchmarkParseTag(b *testing.B) {
 	data := "1,2"
@@ -22,27 +22,27 @@ func BenchmarkParseTag(b *testing.B) {
 	}
 }
 
-func TestReflectMaps(t *testing.T) {
-	g := Goblin(t)
+// func TestReflectMaps(t *testing.T) {
+// 	g := Goblin(t)
 
-	g.Describe("Reflect Maps", func() {
-		g.It("Should equal testPredValCorrect", func(done Done) {
-			go func() {
-				g.Assert(reflectMaps(&testPersonCorrect)).
-					Equal(testPredValCorrect)
-				done()
-			}()
-		})
+// 	g.Describe("Reflect Maps", func() {
+// 		g.It("Should equal testPredValCorrect", func(done Done) {
+// 			go func() {
+// 				g.Assert(reflectMaps(&testPersonCorrect)).
+// 					Equal(testPredValCorrect)
+// 				done()
+// 			}()
+// 		})
 
-		g.It("Should equal testPredValInvalid", func(done Done) {
-			go func() {
-				g.Assert(reflectMaps(&testPersonInvalid)).
-					Equal(testPredValInvalid)
-				done()
-			}()
-		})
-	})
-}
+// 		g.It("Should equal testPredValInvalid", func(done Done) {
+// 			go func() {
+// 				g.Assert(reflectMaps(&testPersonInvalid)).
+// 					Equal(testPredValInvalid)
+// 				done()
+// 			}()
+// 		})
+// 	})
+// }
 
 func TestParseTag(t *testing.T) {
 	g := Goblin(t)
