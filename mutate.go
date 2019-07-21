@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) mutate(ctx context.Context, dg DgraphClient,
-	d predValPairs, uidMap map[string]string, m sync.Locker) (bool, error) {
+	d *DupleNode, uidMap map[string]string, m sync.Locker) (bool, error) {
 
 	res := c.tryUpsert(ctx, dg.NewTxn(), d)
 
