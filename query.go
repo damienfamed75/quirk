@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/dgraph-io/dgo"
 )
 
 // queryUID builds a query, executes it to find any unique marked predicates.
 // Then sifts through the response to see if any UIDs were returned.
 // Finally returns either a uid or an empty string if nothing was found.
-func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat *DupleNode) (string, error) {
+func queryUID(ctx context.Context, txn *dgo.Txn, b builder, dat *DupleNode) (string, error) {
 	defer b.Reset() // reset the strings builder.
 
 	var decode queryDecode // where the decoded query response will be stored.

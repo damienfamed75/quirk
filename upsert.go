@@ -3,9 +3,11 @@ package quirk
 import (
 	"context"
 	"strings"
+
+	"github.com/dgraph-io/dgo"
 )
 
-func (c *Client) tryUpsert(ctx context.Context, txn dgraphTxn, dat *DupleNode) *upsertResponse {
+func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *upsertResponse {
 	defer txn.Discard(ctx)
 
 	// Pass this builder around to other functions for less mem alloc.
