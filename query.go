@@ -10,7 +10,7 @@ import (
 // queryUID builds a query, executes it to find any unique marked predicates.
 // Then sifts through the response to see if any UIDs were returned.
 // Finally returns either a uid or an empty string if nothing was found.
-func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat predValPairs) (string, error) {
+func queryUID(ctx context.Context, txn dgraphTxn, b builder, dat *DupleNode) (string, error) {
 	defer b.Reset() // reset the strings builder.
 
 	var decode queryDecode // where the decoded query response will be stored.
@@ -48,7 +48,7 @@ func findDecodedUID(decode queryDecode) (string, error) {
 // executeQuery calls to create a Query based on the unique predicates sent in
 // and then executes it using the given transaction.
 func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
-	dat predValPairs, decode *queryDecode) error {
+	dat *DupleNode, decode *queryDecode) error {
 	// Write a query that finds the marked unique predicates to the builder.
 	if err := createQuery(b, dat); err != nil {
 		return err
@@ -82,18 +82,18 @@ func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
 
 // createQuery will loop through the unique predicates and write the query
 // to the given io.Writer.
-func createQuery(b io.Writer, dat predValPairs) error {
+func createQuery(b io.Writer, dat *DupleNode) error {
 	if _, err := b.Write([]byte{'{'}); err != nil {
 		return err
 	}
 
 	// Loop through and add a new function per unique predicate.
-	for _, d := range dat.unique() {
-		_, err := fmt.Fprintf(b, queryfunc, "find"+d.predicate, d.predicate, d.value)
+	for _, d := range dat.Unique() {
+		_, err := fmt.Fprintf(b, queryfunc, "find"+d.Predicate, d.Predicate, d.Object)
 		if err != nil { // returns quirk.Error for predicate and value context.
 			return &QueryError{
 				ExtErr:   err,
-				Msg:      fmt.Sprintf(msgBuilderWriting, d.predicate, d.value),
+				Msg:      fmt.Sprintf(msgBuilderWriting, d.Predicate, d.Object),
 				Function: "createQuery",
 			}
 		}
