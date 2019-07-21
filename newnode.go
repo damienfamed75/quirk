@@ -10,11 +10,10 @@ import (
 // setNewNode will build a mutation RDF with the builder and will then
 // execute it using the given transaction. Once executed it will return the UID.
 func setNewNode(ctx context.Context, txn dgraphTxn, b builder,
-	identifier string, dat predValPairs) (string, error) {
-	for _, d := range dat {
+	identifier string, dat *DupleNode) (string, error) {
+	for _, d := range dat.Duples {
 		// get any optional XML datatype knowledge based on the value.
-		opt := checkType(d.value)
-		fmt.Fprintf(b, rdfBase+opt+rdfEnd, identifier, d.predicate, d.value)
+		fmt.Fprintf(b, rdfBase+d.dataType+rdfEnd, identifier, d.Predicate, d.Object)
 	}
 
 	// Use our transaction to execute a mutation to add our new node.
