@@ -20,7 +20,7 @@ type (
 		SetStringMap       map[string]string
 		SetDynamicMap      map[string]interface{}
 		SetSingleDupleNode *DupleNode
-		SetMultiDupleNode  []DupleNode
+		SetMultiDupleNode  []*DupleNode
 	}
 
 	// DupleNode is the container for a duple node.

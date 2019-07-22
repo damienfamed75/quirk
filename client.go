@@ -62,6 +62,8 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 		_, err = c.mutateDynamicMap(ctx, dg, o.SetDynamicMap, uidMap, &sync.Mutex{})
 	case o.SetSingleDupleNode != nil:
 		_, err = c.mutateSingleDupleNode(ctx, dg, o.SetSingleDupleNode, uidMap, &sync.Mutex{})
+	case o.SetMultiDupleNode != nil:
+		err = c.mutateMultiDupleNode(ctx, dg, o.SetMultiDupleNode, uidMap)
 	}
 
 	return
