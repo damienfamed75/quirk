@@ -194,6 +194,32 @@ func TestInsertNode(t *testing.T) {
 		})
 	})
 
+	g.Describe("Multiple Duple Nodes", func() {
+
+		duples := []*DupleNode{
+			&DupleNode{
+				Identifier: "damienstamates",
+				Duples: []Duple{
+					Duple{Predicate: "username", Object: "damienstamates"},
+					Duple{Predicate: "website", Object: "github.com"},
+					Duple{Predicate: "accountAge", Object: 197},
+					Duple{Predicate: "email", Object: "damienstamates@gmail.com"},
+				},
+			},
+		}
+
+		g.It("should not error and return an empty map", func() {
+			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{}),
+				&Operation{SetMultiDupleNode: duples})
+
+			g.Assert(len(uids)).
+				Equal(1)
+
+			g.Assert(err).
+				Equal(error(nil))
+		})
+	})
+
 	g.Describe("Single and multi structs", func() {
 
 		g.It("should return an error", func() {
