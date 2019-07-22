@@ -53,7 +53,7 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 
 	switch {
 	case o.SetMultiStruct != nil:
-		err = c.mutateMultiStruct(ctx, dg, o.SetMultiStruct, uidMap)
+		err = c.mutateMulti(ctx, dg, o.SetMultiStruct, uidMap, c.mutateSingleStruct)
 	case o.SetSingleStruct != nil:
 		_, err = c.mutateSingleStruct(ctx, dg, o.SetSingleStruct, uidMap, &sync.Mutex{})
 	case o.SetStringMap != nil:
@@ -63,7 +63,12 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 	case o.SetSingleDupleNode != nil:
 		_, err = c.mutateSingleDupleNode(ctx, dg, o.SetSingleDupleNode, uidMap, &sync.Mutex{})
 	case o.SetMultiDupleNode != nil:
-		err = c.mutateMultiDupleNode(ctx, dg, o.SetMultiDupleNode, uidMap)
+		var tmp = make([]interface{}, len(o.SetMultiDupleNode))
+		for i, t := range o.SetMultiDupleNode {
+			tmp[i] = t
+		}
+
+		err = c.mutateMulti(ctx, dg, tmp, uidMap, c.mutateSingleDupleNode)
 	}
 
 	return

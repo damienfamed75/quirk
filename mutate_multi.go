@@ -18,8 +18,8 @@ var (
 	retryCount   uint64
 )
 
-func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
-	dat []interface{}, uidMap map[string]string) error {
+func (c *Client) mutateMulti(ctx context.Context, dg DgraphClient,
+	dat []interface{}, uidMap map[string]string, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
 		limit = maxWorkers
@@ -37,7 +37,7 @@ func (c *Client) mutateMultiStruct(ctx context.Context, dg DgraphClient,
 	// Launch workers.
 	for i := 0; i < limit; i++ {
 		wg.Add(1)
-		go mutationWorker(ctx, dg, &wg, &m, c.mutateSingleStruct, c.logger,
+		go mutationWorker(ctx, dg, &wg, &m, mutateFunc, c.logger,
 			uidMap, read, quit, done)
 	}
 
