@@ -57,29 +57,34 @@ func main() {
 		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
 	}
 
+	// Create some data to insert into Dgraph.
 	dupleNodes := []*quirk.DupleNode{
 		// Damien or George shuold fail because they share the same Policy.
-		&quirk.DupleNode{Identifier: "Damien", Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "Damien"},
-			quirk.Duple{Predicate: "ssn", Object: "123", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
-		}},
-		&quirk.DupleNode{Identifier: "George", Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "George"},
-			quirk.Duple{Predicate: "ssn", Object: "124", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
-		}},
+		&quirk.DupleNode{Identifier: "Damien",
+			Duples: []quirk.Duple{
+				quirk.Duple{Predicate: "name", Object: "Damien"},
+				quirk.Duple{Predicate: "ssn", Object: "123", IsUnique: true},
+				quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
+			}},
+		&quirk.DupleNode{Identifier: "George",
+			Duples: []quirk.Duple{
+				quirk.Duple{Predicate: "name", Object: "George"},
+				quirk.Duple{Predicate: "ssn", Object: "124", IsUnique: true},
+				quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
+			}},
 		// Bahram or Angad should fail because they share the same SSN.
-		&quirk.DupleNode{Identifier: "Bahram", Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "Bahram"},
-			quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "DEF", IsUnique: true},
-		}},
-		&quirk.DupleNode{Identifier: "Angad", Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "Angad"},
-			quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "GHI", IsUnique: true},
-		}},
+		&quirk.DupleNode{Identifier: "Bahram",
+			Duples: []quirk.Duple{
+				quirk.Duple{Predicate: "name", Object: "Bahram"},
+				quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
+				quirk.Duple{Predicate: "policy", Object: "DEF", IsUnique: true},
+			}},
+		&quirk.DupleNode{Identifier: "Angad",
+			Duples: []quirk.Duple{
+				quirk.Duple{Predicate: "name", Object: "Angad"},
+				quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
+				quirk.Duple{Predicate: "policy", Object: "GHI", IsUnique: true},
+			}},
 	}
 
 	// Use the quirk client to insert a single node using a DupleNode struct.

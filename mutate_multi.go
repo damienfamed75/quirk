@@ -18,6 +18,7 @@ var (
 	retryCount   uint64
 )
 
+// mutateMulti is used for all kinds of mutating any multiple type.
 func (c *Client) mutateMulti(ctx context.Context, dg DgraphClient,
 	dat []interface{}, uidMap map[string]string, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.

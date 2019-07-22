@@ -63,7 +63,9 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 	case o.SetSingleDupleNode != nil:
 		_, err = c.mutateSingleDupleNode(ctx, dg, o.SetSingleDupleNode, uidMap, &sync.Mutex{})
 	case o.SetMultiDupleNode != nil:
-		var tmp = make([]interface{}, len(o.SetMultiDupleNode))
+		// TODO work out some way to convert the slice to []interface{} without copying.
+		// This could possibly be using the "unsafe" package.
+		tmp := make([]interface{}, len(o.SetMultiDupleNode))
 		for i, t := range o.SetMultiDupleNode {
 			tmp[i] = t
 		}
