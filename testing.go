@@ -36,45 +36,6 @@ func (t *testBuilder) String() string {
 
 func (*testBuilder) Reset() {}
 
-// type testTxn struct {
-// 	useCount   int
-// 	failOn     int
-// 	jsonOutput []byte
-// }
-
-// func (t *testTxn) Query(context.Context, string) (*api.Response, error) {
-// 	t.useCount++
-// 	if t.useCount == t.failOn {
-// 		return &api.Response{}, errors.New("QUERY_ERROR")
-// 	}
-// 	return &api.Response{
-// 		Json: []byte(t.jsonOutput)}, nil
-// }
-
-// func (t *testTxn) Mutate(context.Context, *api.Mutation) (*api.Assigned, error) {
-// 	t.useCount++
-// 	if t.useCount == t.failOn {
-// 		return &api.Assigned{}, errors.New("MUTATE_ERROR")
-// 	}
-// 	return &api.Assigned{Uids: map[string]string{"a": "0x1"}}, nil
-// }
-
-// func (t *testTxn) Commit(context.Context) error {
-// 	t.useCount++
-// 	if t.useCount == t.failOn {
-// 		return errors.New("COMMIT_ERROR")
-// 	}
-// 	return nil
-// }
-
-// func (t *testTxn) Discard(context.Context) error {
-// 	t.useCount++
-// 	if t.useCount == t.failOn {
-// 		return errors.New("DISCARD_ERROR")
-// 	}
-// 	return nil
-// }
-
 type testDgraphClient struct {
 	queryUseCount int
 	failQueryOn   int
