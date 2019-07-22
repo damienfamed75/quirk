@@ -12,11 +12,34 @@ import (
 // Exported structures for the Client to use.
 type (
 	// Operation is the main parameter used when calling quirk client methods.
+	// Note: only one of these should be filled at a time, because only one
+	// will be executed and taken care of as seen in client.go
 	Operation struct {
-		SetMultiStruct  []interface{}
-		SetSingleStruct interface{}
-		SetStringMap    map[string]string
-		SetDynamicMap   map[string]interface{}
+		SetMultiStruct     []interface{}
+		SetSingleStruct    interface{}
+		SetStringMap       map[string]string
+		SetDynamicMap      map[string]interface{}
+		SetSingleDupleNode *DupleNode
+		SetMultiDupleNode  []*DupleNode
+	}
+
+	// DupleNode is the container for a duple node.
+	DupleNode struct {
+		Identifier string
+		Duples     []Duple
+	}
+
+	// Duple is a structural way of giving the quirk client enough information
+	// about a node to create triples and insert them into Dgraph.
+	Duple struct {
+		// Predicate acts as a key.
+		Predicate string
+		// Object is the data representing the predicate.
+		Object interface{}
+		// IsUnique stores whether or not to treat this as an upsert or not.
+		IsUnique bool
+		// dataType stores the xml tag for the datatype.
+		dataType string
 	}
 
 	// DgraphClient is used to mock out the client when testing.
@@ -56,17 +79,15 @@ type (
 	}
 )
 
-// predValPairs is used to sort out the upsert valued
-// predValDat from the slice.
-type predValPairs []*predValDat
-
-func (p predValPairs) unique() (pairs predValPairs) {
-	for _, v := range p {
-		if v.isUnique {
-			pairs = append(pairs, v)
+// Unique will loop through the Duples and return a new slice
+// containing all duples that are marked as unique.
+func (d *DupleNode) Unique() (duples []Duple) {
+	for _, v := range d.Duples {
+		if v.IsUnique {
+			duples = append(duples, v)
 		}
 	}
-	return pairs
+	return duples
 }
 
 // Credit: The Go Authors @ "encoding/json"

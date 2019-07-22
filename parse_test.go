@@ -7,10 +7,11 @@ import (
 )
 
 func BenchmarkReflectMaps(b *testing.B) {
+	c := NewClient()
 	data := testPersonCorrect // from testing.go
 
 	for i := 0; i < b.N; i++ {
-		_ = reflectMaps(&data)
+		_ = c.reflectMaps(&data)
 	}
 }
 
@@ -20,28 +21,6 @@ func BenchmarkParseTag(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = parseTag(data)
 	}
-}
-
-func TestReflectMaps(t *testing.T) {
-	g := Goblin(t)
-
-	g.Describe("Reflect Maps", func() {
-		g.It("Should equal testPredValCorrect", func(done Done) {
-			go func() {
-				g.Assert(reflectMaps(&testPersonCorrect)).
-					Equal(testPredValCorrect)
-				done()
-			}()
-		})
-
-		g.It("Should equal testPredValInvalid", func(done Done) {
-			go func() {
-				g.Assert(reflectMaps(&testPersonInvalid)).
-					Equal(testPredValInvalid)
-				done()
-			}()
-		})
-	})
 }
 
 func TestParseTag(t *testing.T) {
@@ -101,6 +80,13 @@ func TestCheckType(t *testing.T) {
 		})
 		g.It("Should be an int with int16", func() {
 			var a int16
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsInt)
+		})
+		g.It("Should be an int with int8", func() {
+			var a int8
 			b := checkType(a)
 
 			g.Assert(b).

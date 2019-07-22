@@ -36,46 +36,9 @@ func (t *testBuilder) String() string {
 
 func (*testBuilder) Reset() {}
 
-type testTxn struct {
-	useCount   int
-	failOn     int
-	jsonOutput []byte
-}
-
-func (t *testTxn) Query(context.Context, string) (*api.Response, error) {
-	t.useCount++
-	if t.useCount == t.failOn {
-		return &api.Response{}, errors.New("QUERY_ERROR")
-	}
-	return &api.Response{
-		Json: []byte(t.jsonOutput)}, nil
-}
-
-func (t *testTxn) Mutate(context.Context, *api.Mutation) (*api.Assigned, error) {
-	t.useCount++
-	if t.useCount == t.failOn {
-		return &api.Assigned{}, errors.New("MUTATE_ERROR")
-	}
-	return &api.Assigned{Uids: map[string]string{"a": "0x1"}}, nil
-}
-
-func (t *testTxn) Commit(context.Context) error {
-	t.useCount++
-	if t.useCount == t.failOn {
-		return errors.New("COMMIT_ERROR")
-	}
-	return nil
-}
-
-func (t *testTxn) Discard(context.Context) error {
-	t.useCount++
-	if t.useCount == t.failOn {
-		return errors.New("DISCARD_ERROR")
-	}
-	return nil
-}
-
 type testDgraphClient struct {
+	queryUseCount int
+	failQueryOn   int
 	queryResponse []byte
 	alterResponse error
 	shouldAbort   bool
@@ -86,6 +49,10 @@ func (*testDgraphClient) Login(context.Context, *api.LoginRequest, ...grpc.CallO
 }
 
 func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOption) (*api.Response, error) {
+	d.queryUseCount++
+	if d.queryUseCount == d.failQueryOn {
+		return &api.Response{}, errors.New("QUERY_ERROR")
+	}
 	return &api.Response{Json: d.queryResponse}, nil
 }
 
@@ -133,11 +100,13 @@ var (
 		Email:      "damienstamates@gmail.com",
 	}
 
-	testPredValCorrect = predValPairs{
-		&predValDat{predicate: "username", value: testPersonCorrect.Username, isUnique: true},
-		&predValDat{predicate: "website", value: testPersonCorrect.Website, isUnique: false},
-		&predValDat{predicate: "acctage", value: testPersonCorrect.AccountAge, isUnique: false},
-		&predValDat{predicate: "email", value: testPersonCorrect.Email, isUnique: true},
+	testPredValCorrect = &DupleNode{
+		Duples: []Duple{
+			Duple{Predicate: "username", Object: testPersonCorrect.Username, IsUnique: true},
+			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+		},
 	}
 
 	testPersonInvalid = struct {
@@ -152,10 +121,12 @@ var (
 		Email:      "damienstamates@gmail.com",
 	}
 
-	testPredValInvalid = predValPairs{
-		&predValDat{predicate: "", value: testPersonCorrect.Username, isUnique: false},
-		&predValDat{predicate: "website", value: testPersonCorrect.Website, isUnique: false},
-		&predValDat{predicate: "acctage", value: testPersonCorrect.AccountAge, isUnique: false},
-		&predValDat{predicate: "email", value: testPersonCorrect.Email, isUnique: true},
+	testPredValInvalid = &DupleNode{
+		Duples: []Duple{
+			Duple{Predicate: "", Object: testPersonCorrect.Username, IsUnique: false},
+			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+		},
 	}
 )

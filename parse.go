@@ -22,10 +22,12 @@ func parseTag(tag string) (string, tagOptions) {
 // reflectMaps takes an interface which is suspected to be given as a struct.
 // Takes the fields and parses through the tags and adds the fieldname, and
 // whether it is a unique tag to the returning predicate:value data slice.
-func reflectMaps(d interface{}) predValPairs {
+func (c *Client) reflectMaps(d interface{}) *DupleNode {
 	elem := reflect.ValueOf(d).Elem()
 	numFields := elem.NumField()
-	predVal := make(predValPairs, numFields)
+	duple := &DupleNode{
+		Duples: make([]Duple, numFields),
+	}
 
 	var (
 		tag string     // stores the name of the field in Dgraph.
@@ -37,47 +39,74 @@ func reflectMaps(d interface{}) predValPairs {
 		tag, opt = parseTag(reflect.TypeOf(d).Elem().Field(i).Tag.Get(quirkTag))
 
 		// Add the predicate and value to the slice.
-		predVal[i] = &predValDat{
-			predicate: tag, // first quirk tag.
-			value:     elem.Field(i).Interface(),
-			isUnique:  opt == tagUnique, // if the second option is "unique"
+		duple.Duples[i] = Duple{
+			Predicate: tag, // first quirk tag.
+			Object:    elem.Field(i).Interface(),
+			IsUnique:  opt == tagUnique, // if the second option is "unique"
+			dataType:  checkType(elem.Field(i).Interface()),
+		}
+
+		if tag == c.predicateKey {
+			duple.Identifier = duple.Duples[i].Object.(string)
 		}
 	}
 
-	return predVal
+	return duple
 }
 
-func dynamicMapToPredValPairs(d map[string]interface{}) predValPairs {
-	predVal := make(predValPairs, len(d))
-
-	var i int
-
-	for k, v := range d {
-		predVal[i] = &predValDat{
-			predicate: k,
-			value:     v,
-		}
-		i++
+// dynamicMapToPredValPairs may seem like a duplicate of mapToPredValPairs
+// but this one uses a map[string]interface{} instead of a map[string]string
+// which in Go there is currently no way to have them be interchangeable.
+func (c *Client) dynamicMapToPredValPairs(d map[string]interface{}) *DupleNode {
+	duple := &DupleNode{
+		Duples: make([]Duple, len(d)),
 	}
-
-	return predVal
-}
-
-func mapToPredValPairs(d map[string]string) predValPairs {
-	predVal := make(predValPairs, len(d))
 
 	var i int // counter for the predVal slice.
 
 	// loop through elements of map.
 	for k, v := range d {
-		predVal[i] = &predValDat{
-			predicate: k,
-			value:     v,
+		duple.Duples[i] = Duple{
+			Predicate: k,
+			Object:    v,
+			dataType:  checkType(v),
 		}
+
+		if k == c.predicateKey {
+			duple.Identifier = v.(string)
+		}
+
 		i++
 	}
 
-	return predVal
+	return duple
+}
+
+// mapToPredValPairs may seem like a duplicate of dynamicMapToPredValPairs
+// but this one uses a map[string]string instead of a map[string]interface{}
+// which in Go there is currently no way to have them be interchangeable.
+func (c *Client) mapToPredValPairs(d map[string]string) *DupleNode {
+	duple := &DupleNode{
+		Duples: make([]Duple, len(d)),
+	}
+
+	var i int // counter for the predVal slice.
+
+	// loop through elements of map.
+	for k, v := range d {
+		duple.Duples[i] = Duple{
+			Predicate: k,
+			Object:    v,
+		}
+
+		if k == c.predicateKey {
+			duple.Identifier = v
+		}
+
+		i++
+	}
+
+	return duple
 }
 
 // checkType will return an XML datatype tag if
@@ -88,7 +117,9 @@ func checkType(val interface{}) string {
 		return xsInt
 	case int32: // int32 gets handled as a normal int.
 		return xsInt
-	case int16:
+	case int16: // int16 gets handled as normal int.
+		return xsInt
+	case int8: // int8 gets handled as normal int.
 		return xsInt
 	case int:
 		return xsInt

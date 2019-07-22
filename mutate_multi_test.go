@@ -10,17 +10,17 @@ import (
 	. "github.com/franela/goblin"
 )
 
-func TestMutateMultiStruct(t *testing.T) {
+func TestMutateMulti(t *testing.T) {
 	g := Goblin(t)
 	c := NewClient()
 
-	g.Describe("mutateMultiStruct", func() {
+	g.Describe("mutateMulti", func() {
 		ctx := context.Background()
 
 		g.It("Should not error", func() {
-			g.Assert(c.mutateMultiStruct(ctx,
+			g.Assert(c.mutateMulti(ctx,
 				dgo.NewDgraphClient(&testDgraphClient{}), []interface{}{},
-				make(map[string]string))).
+				make(map[string]string), c.mutateSingleStruct)).
 				Equal(nil)
 		})
 	})

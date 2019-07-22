@@ -69,7 +69,7 @@ func TestNewClient(t *testing.T) {
 
 func TestInsertNode(t *testing.T) {
 	g := Goblin(t)
-	c := NewClient(WithLogger(NewCustomLogger([]byte("dpanic"), zapcore.EncoderConfig{})))
+	c := NewClient(WithPredicateKey("username"), WithLogger(NewCustomLogger([]byte("dpanic"), zapcore.EncoderConfig{})))
 	ctx := context.Background()
 
 	g.Describe("Single Struct", func() {
@@ -128,6 +128,96 @@ func TestInsertNode(t *testing.T) {
 			}
 		})
 
+	})
+
+	g.Describe("String Map", func() {
+
+		stringMap := make(map[string]string)
+		stringMap["username"] = "damienstamates"
+		stringMap["website"] = "github.com"
+		stringMap["accountAge"] = "197"
+		stringMap["email"] = "damienstamates@gmail.com"
+
+		g.It("should not error and return an empty map", func() {
+			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{}),
+				&Operation{SetStringMap: stringMap})
+
+			g.Assert(len(uids)).
+				Equal(1)
+
+			g.Assert(err).
+				Equal(error(nil))
+		})
+	})
+
+	g.Describe("Dynamic Map", func() {
+
+		dynamicMap := make(map[string]interface{})
+		dynamicMap["username"] = "damienstamates"
+		dynamicMap["website"] = "github.com"
+		dynamicMap["accountAge"] = 197
+		dynamicMap["email"] = "damienstamates@gmail.com"
+
+		g.It("should not error and return an empty map", func() {
+			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{}),
+				&Operation{SetDynamicMap: dynamicMap})
+
+			g.Assert(len(uids)).
+				Equal(1)
+
+			g.Assert(err).
+				Equal(error(nil))
+		})
+	})
+
+	g.Describe("Duple Node", func() {
+
+		duple := &DupleNode{
+			Identifier: "damienstamates",
+			Duples: []Duple{
+				Duple{Predicate: "username", Object: "damienstamates"},
+				Duple{Predicate: "website", Object: "github.com"},
+				Duple{Predicate: "accountAge", Object: 197},
+				Duple{Predicate: "email", Object: "damienstamates@gmail.com"},
+			},
+		}
+
+		g.It("should not error and return an empty map", func() {
+			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{}),
+				&Operation{SetSingleDupleNode: duple})
+
+			g.Assert(len(uids)).
+				Equal(1)
+
+			g.Assert(err).
+				Equal(error(nil))
+		})
+	})
+
+	g.Describe("Multiple Duple Nodes", func() {
+
+		duples := []*DupleNode{
+			&DupleNode{
+				Identifier: "damienstamates",
+				Duples: []Duple{
+					Duple{Predicate: "username", Object: "damienstamates"},
+					Duple{Predicate: "website", Object: "github.com"},
+					Duple{Predicate: "accountAge", Object: 197},
+					Duple{Predicate: "email", Object: "damienstamates@gmail.com"},
+				},
+			},
+		}
+
+		g.It("should not error and return an empty map", func() {
+			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{}),
+				&Operation{SetMultiDupleNode: duples})
+
+			g.Assert(len(uids)).
+				Equal(1)
+
+			g.Assert(err).
+				Equal(error(nil))
+		})
 	})
 
 	g.Describe("Single and multi structs", func() {

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dgraph-io/dgo"
 	. "github.com/franela/goblin"
 )
 
@@ -22,11 +23,14 @@ func BenchmarkExecuteQuery(b *testing.B) {
 	var (
 		ctx     = context.Background()
 		decoder = make(queryDecode)
+		dgraph  = dgo.NewDgraphClient(&testDgraphClient{
+			queryResponse: testValidJSONOutput,
+		})
 	)
 
 	for i := 0; i < b.N; i++ {
-		_ = executeQuery(ctx, &testTxn{jsonOutput: testValidJSONOutput},
-			&testBuilder{}, predValPairs{}, &decoder)
+		_ = executeQuery(ctx, dgraph.NewTxn(),
+			&testBuilder{}, &DupleNode{}, &decoder)
 	}
 }
 
@@ -48,18 +52,21 @@ func TestQueryUID(t *testing.T) {
 
 	g.Describe("createUID", func() {
 		ctx := context.Background()
+		dgraph := dgo.NewDgraphClient(&testDgraphClient{
+			queryResponse: testValidJSONOutput,
+		})
 
 		g.It("Should not error with nil parameters", func() {
-			s, err := queryUID(ctx, &testTxn{jsonOutput: testValidJSONOutput},
-				&testBuilder{}, predValPairs{})
+			s, err := queryUID(ctx, dgraph.NewTxn(),
+				&testBuilder{}, &DupleNode{})
 
 			g.Assert(s).Equal("0x1")
 			g.Assert(err).Equal(nil)
 		})
 
 		g.It("Should error when executeQuery errors", func() {
-			s, err := queryUID(ctx, &testTxn{},
-				&testBuilder{failOn: 1}, predValPairs{})
+			s, err := queryUID(ctx, dgraph.NewTxn(),
+				&testBuilder{failOn: 1}, &DupleNode{})
 
 			g.Assert(s).Equal("")
 			g.Assert(err).Equal(errors.New("WRITE_ERROR"))
@@ -126,27 +133,35 @@ func TestExecuteQuery(t *testing.T) {
 		ctx := context.Background()
 		emptyDecode := make(queryDecode)
 
+		dgraph := dgo.NewDgraphClient(&testDgraphClient{
+			queryResponse: testValidJSONOutput,
+		})
+
 		g.It("Should not error with valid parameters", func() {
-			g.Assert(executeQuery(ctx, &testTxn{jsonOutput: testValidJSONOutput},
-				&testBuilder{}, predValPairs{}, &emptyDecode)).
+			g.Assert(executeQuery(ctx, dgraph.NewTxn(),
+				&testBuilder{}, &DupleNode{}, &emptyDecode)).
 				Equal(error(nil))
 		})
 
 		g.It("Should error when builder fails first use", func() {
-			g.Assert(executeQuery(ctx, &testTxn{jsonOutput: testValidJSONOutput},
-				&testBuilder{failOn: 1}, predValPairs{}, &emptyDecode)).
+			g.Assert(executeQuery(ctx, dgraph.NewTxn(),
+				&testBuilder{failOn: 1}, &DupleNode{}, &emptyDecode)).
 				Equal(errors.New("WRITE_ERROR"))
 		})
 
 		g.It("Should not error when builder returns empty query", func() {
-			g.Assert(executeQuery(ctx, &testTxn{jsonOutput: testValidJSONOutput},
-				&testBuilder{stringOutput: emptyQuery}, predValPairs{}, &emptyDecode)).
+			g.Assert(executeQuery(ctx, dgraph.NewTxn(),
+				&testBuilder{stringOutput: emptyQuery}, &DupleNode{}, &emptyDecode)).
 				Equal(error(nil))
 		})
 
 		g.It("Should error when txn fails", func() {
-			g.Assert(executeQuery(ctx, &testTxn{failOn: 1},
-				&testBuilder{}, predValPairs{}, &emptyDecode)).
+			faildgraph := dgo.NewDgraphClient(&testDgraphClient{
+				failQueryOn: 1,
+				shouldAbort: true,
+			})
+			g.Assert(executeQuery(ctx, faildgraph.NewTxn(),
+				&testBuilder{}, &DupleNode{}, &emptyDecode)).
 				Equal(&QueryError{
 					Function: "executeQuery",
 					Query:    "",
@@ -155,8 +170,11 @@ func TestExecuteQuery(t *testing.T) {
 		})
 
 		g.It("Should error when txn fails", func() {
-			err := executeQuery(ctx, &testTxn{jsonOutput: []byte(`fall`)},
-				&testBuilder{}, predValPairs{}, &emptyDecode)
+			faildgraph := dgo.NewDgraphClient(&testDgraphClient{
+				shouldAbort: true,
+			})
+			err := executeQuery(ctx, faildgraph.NewTxn(),
+				&testBuilder{}, &DupleNode{}, &emptyDecode)
 
 			// Can't test the value of the json error.
 			// Instead just test if the function returned an error at all.
@@ -182,7 +200,7 @@ func TestCreateQuery(t *testing.T) {
 
 		g.It("Should error when builder fails on first use", func(done Done) {
 			go func() {
-				g.Assert(createQuery(&testBuilder{failOn: 1}, predValPairs{})).
+				g.Assert(createQuery(&testBuilder{failOn: 1}, &DupleNode{})).
 					Equal(errors.New("WRITE_ERROR"))
 				done()
 			}()
@@ -204,7 +222,7 @@ func TestCreateQuery(t *testing.T) {
 			go func() {
 				// When putting in empty predValPairs it will skip the for loop.
 				// This is why the last use is set to 2.
-				g.Assert(createQuery(&testBuilder{failOn: 2}, predValPairs{})).
+				g.Assert(createQuery(&testBuilder{failOn: 2}, &DupleNode{})).
 					Equal(errors.New("WRITE_ERROR"))
 				done()
 			}()
