@@ -22,6 +22,7 @@ const (
 	blankDefault = "data"
 	whenRDF      = `<%s> <when> "%d"^^<xs:int> .`
 	rdfBase      = "_:%s <%s> \"%v\""
+	rdfReference = "_:%s <%s> <%v>"
 	rdfEnd       = " .\n"
 	queryfunc    = "%s(func: eq(%s, %q), first: 1){uid}\n"
 )

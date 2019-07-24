@@ -12,8 +12,14 @@ import (
 func setNewNode(ctx context.Context, txn dgraphTxn, b builder,
 	identifier string, dat *DupleNode) (string, error) {
 	for _, d := range dat.Duples {
-		// get any optional XML datatype knowledge based on the value.
-		fmt.Fprintf(b, rdfBase+d.dataType+rdfEnd, identifier, d.Predicate, d.Object)
+		d.dataType = checkType(d.Object)
+		if uid, ok := d.Object.(UID); ok {
+			// Use the UID format instead of the regular object.
+			fmt.Fprintf(b, rdfReference+d.dataType+rdfEnd, identifier, d.Predicate, uid)
+		} else {
+			// get any optional XML datatype knowledge based on the value.
+			fmt.Fprintf(b, rdfBase+d.dataType+rdfEnd, identifier, d.Predicate, d.Object)
+		}
 	}
 
 	// Use our transaction to execute a mutation to add our new node.

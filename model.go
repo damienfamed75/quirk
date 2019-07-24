@@ -95,6 +95,11 @@ func (d *DupleNode) Unique() (duples []Duple) {
 // tag, or the empty string. It does not include the leading comma.
 type tagOptions string
 
+// UID is used to identify the ID's given to the user and retrieved back to
+// be put as the object of a predicate.
+// This way quirk can handle the UID how they're supposed to be handled.
+type UID string
+
 // queryDecode is our type when unmarshalling a query response.
 type queryDecode map[string][]struct{ UID *string }
 

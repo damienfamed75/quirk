@@ -3,6 +3,7 @@ package quirk
 import (
 	"context"
 	"sync"
+	"unsafe"
 
 	"github.com/damienfamed75/quirk/logging"
 )
@@ -40,7 +41,7 @@ func NewClient(confs ...ClientConfiguration) *Client {
 // will be added or a single node. Then the function will return a
 // map of the returned successful UIDs with the key being the predicate
 // key value. By default this will be the "name" predicate value.
-func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) (uidMap map[string]string, err error) {
+func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) (map[string]UID, error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
 		return nil, &Error{
 			Msg:      msgTooManyMutationFields,
@@ -49,7 +50,8 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 		}
 	}
 
-	uidMap = make(map[string]string)
+	var err error
+	uidMap := make(map[string]string)
 
 	switch {
 	case o.SetMultiStruct != nil:
@@ -73,7 +75,7 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 		err = c.mutateMulti(ctx, dg, tmp, uidMap, c.mutateSingleDupleNode)
 	}
 
-	return
+	return *(*map[string]UID)(unsafe.Pointer(&uidMap)), err
 }
 
 // GetPredicateKey returns the name of the field(predicate) that will
