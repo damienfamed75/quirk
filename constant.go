@@ -39,4 +39,7 @@ const (
 	// unused at the moment.
 	xsString   = xsInit + "<xs:string>"
 	xsDateTime = xsInit + "<xs:date>"
+
+	// notifier to fix byte slice.
+	xsByte = xsInit + "<xs:byte>"
 )

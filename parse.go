@@ -63,13 +63,22 @@ func (c *Client) dynamicMapToPredValPairs(d map[string]interface{}) *DupleNode {
 	}
 
 	var i int // counter for the predVal slice.
+	var val interface{}
 
 	// loop through elements of map.
 	for k, v := range d {
+
+		dType := checkType(v)
+		if dType == xsByte {
+			val = string(v.([]byte))
+		} else {
+			val = v
+		}
+
 		duple.Duples[i] = Duple{
 			Predicate: k,
-			Object:    v,
-			dataType:  checkType(v),
+			Object:    val,
+			dataType:  dType,
 		}
 
 		if k == c.predicateKey {
@@ -129,6 +138,8 @@ func checkType(val interface{}) string {
 		return xsFloat
 	case float64: // float64 gets handled as a general float.
 		return xsFloat
+	case []byte:
+		return xsByte
 	}
 
 	return ""
