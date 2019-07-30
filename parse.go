@@ -71,6 +71,7 @@ func (c *Client) dynamicMapToPredValPairs(d map[string]interface{}) *DupleNode {
 		dType := checkType(v)
 		if dType == xsByte {
 			val = string(v.([]byte))
+			dType = ""
 		} else {
 			val = v
 		}
