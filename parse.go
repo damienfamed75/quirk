@@ -43,7 +43,7 @@ func (c *Client) reflectMaps(d interface{}) *DupleNode {
 			Predicate: tag, // first quirk tag.
 			Object:    elem.Field(i).Interface(),
 			IsUnique:  opt == tagUnique, // if the second option is "unique"
-			dataType:  checkType(elem.Field(i).Interface()),
+			// dataType:  checkType(elem.Field(i).Interface()),
 		}
 
 		if tag == c.predicateKey {
