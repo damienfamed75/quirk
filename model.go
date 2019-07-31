@@ -90,6 +90,25 @@ func (d *DupleNode) Unique() (duples []Duple) {
 	return duples
 }
 
+// Find will return a reference to a duple given that it is found
+// in the slice of duples in the DupleNode.
+func (d *DupleNode) Find(predicate string) *Duple {
+	for _, dple := range d.Duples {
+		if dple.Predicate == predicate {
+			return &dple
+		}
+	}
+
+	return nil
+}
+
+// AddDuples appends new duples given in the function.
+// Then returns the reference to the DupleNode.
+func (d *DupleNode) AddDuples(duple ...Duple) *DupleNode {
+	d.Duples = append(d.Duples, duple...)
+	return d
+}
+
 // Credit: The Go Authors @ "encoding/json"
 // tagOptions is the string following a comma in a struct field's "quirk"
 // tag, or the empty string. It does not include the leading comma.
