@@ -93,13 +93,27 @@ func (d *DupleNode) Unique() (duples []Duple) {
 // Find will return a reference to a duple given that it is found
 // in the slice of duples in the DupleNode.
 func (d *DupleNode) Find(predicate string) *Duple {
-	for _, dple := range d.Duples {
+	for i, dple := range d.Duples {
 		if dple.Predicate == predicate {
-			return &dple
+			return &d.Duples[i]
 		}
 	}
 
 	return nil
+}
+
+// SetOrAdd will set a pre existing duple in the DupleNode or
+// if the Duple doesn't exist, then it will be added to the Node.
+func (d *DupleNode) SetOrAdd(duple Duple) *DupleNode {
+	for i, dple := range d.Duples {
+		if dple.Predicate == duple.Predicate {
+			d.Duples[i].Object = duple.Object
+			d.Duples[i].IsUnique = duple.IsUnique
+			return d
+		}
+	}
+
+	return d.AddDuples(duple)
 }
 
 // AddDuples appends new duples given in the function.
