@@ -15,7 +15,7 @@ func setNewNode(ctx context.Context, txn dgraphTxn, b builder,
 		d.dataType = checkType(d.Object)
 		if uid, ok := d.Object.(UID); ok {
 			// Use the UID format instead of the regular object.
-			fmt.Fprintf(b, rdfReference+d.dataType+rdfEnd, identifier, d.Predicate, uid)
+			fmt.Fprintf(b, rdfReference+d.dataType+rdfEnd, identifier, d.Predicate, uid.Value())
 		} else if slice, ok := d.Object.([]byte); ok {
 			// get any optional XML datatype knowledge based on the value.
 			fmt.Fprintf(b, rdfBase+rdfEnd, identifier, d.Predicate, string(slice))

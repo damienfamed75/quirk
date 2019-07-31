@@ -17,12 +17,20 @@ const (
 const tagUnique tagOptions = "unique"
 
 const (
+	rdfBase      = "_:%s <%s> \"%v\""
+	rdfReference = "_:%s <%s> <%v>"
+)
+
+const (
+	rdfOldBase      = "<%s> <%s> \"%v\""
+	rdfOldReference = "<%s> <%s> <%v>"
+)
+
+const (
 	quirkTag     = "quirk"
 	emptyQuery   = "{}"
 	blankDefault = "data"
 	whenRDF      = `<%s> <when> "%d"^^<xs:int> .`
-	rdfBase      = "_:%s <%s> \"%v\""
-	rdfReference = "_:%s <%s> <%v>"
 	rdfEnd       = " .\n"
 	queryfunc    = "%s(func: eq(%s, %q), first: 1){uid}\n"
 )

@@ -20,7 +20,7 @@ func TestMutateMulti(t *testing.T) {
 		g.It("Should not error", func() {
 			g.Assert(c.mutateMulti(ctx,
 				dgo.NewDgraphClient(&testDgraphClient{}), []interface{}{},
-				make(map[string]string), c.mutateSingleStruct)).
+				make(map[string]UID), c.mutateSingleStruct)).
 				Equal(nil)
 		})
 	})
@@ -54,7 +54,7 @@ func TestMutationWorker(t *testing.T) {
 			api    = &testDgraphClient{queryResponse: []byte("{}")}
 			dg     = dgo.NewDgraphClient(api)
 			logger = NewNilLogger()
-			uidMap = make(map[string]string)
+			uidMap = make(map[string]UID)
 			done   = make(chan error, 1)
 		)
 

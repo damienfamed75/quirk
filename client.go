@@ -51,7 +51,7 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 	}
 
 	var err error
-	uidMap := make(map[string]string)
+	uidMap := make(map[string]UID)
 
 	switch {
 	case o.SetMultiStruct != nil:

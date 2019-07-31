@@ -20,7 +20,7 @@ var (
 
 // mutateMulti is used for all kinds of mutating any multiple type.
 func (c *Client) mutateMulti(ctx context.Context, dg DgraphClient,
-	dat []interface{}, uidMap map[string]string, mutateFunc mutateSingle) error {
+	dat []interface{}, uidMap map[string]UID, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
 		limit = maxWorkers
@@ -74,7 +74,7 @@ func launchWorkers(limit int, wg *sync.WaitGroup,
 
 func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
 	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger,
-	uidMap map[string]string, read chan interface{}, quit chan bool, done chan error) {
+	uidMap map[string]UID, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()
 	var err error

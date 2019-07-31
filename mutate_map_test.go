@@ -20,7 +20,7 @@ func TestStringMap(t *testing.T) {
 		testMap["accountAge"] = "197"
 		testMap["email"] = "damienstamates@gmail.com"
 
-		uidMap := make(map[string]string)
+		uidMap := make(map[string]UID)
 		ctx := context.Background()
 
 		g.It("should be empty, false, and nil", func() {
@@ -53,7 +53,7 @@ func TestDynamicMap(t *testing.T) {
 		testMap["accountAge"] = 197
 		testMap["email"] = "damienstamates@gmail.com"
 
-		uidMap := make(map[string]string)
+		uidMap := make(map[string]UID)
 		ctx := context.Background()
 
 		g.It("should be empty, false, and nil", func() {

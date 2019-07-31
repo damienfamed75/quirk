@@ -14,7 +14,7 @@ func TestMutateSingleStruct(t *testing.T) {
 	c := NewClient(WithPredicateKey("username"))
 
 	g.Describe("UIDMap, New, and Error", func() {
-		uidMap := make(map[string]string)
+		uidMap := make(map[string]UID)
 		ctx := context.Background()
 
 		g.It("should be empty, false, and nil", func() {
@@ -48,7 +48,7 @@ func TestMutateSingleStruct(t *testing.T) {
 			g.Assert(len(uidMap)).
 				Equal(1)
 
-			g.Assert(uidMap["damienstamates"]).
+			g.Assert(uidMap["damienstamates"].uid).
 				Equal("0x1")
 		})
 	})

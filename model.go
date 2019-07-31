@@ -98,10 +98,21 @@ type tagOptions string
 // UID is used to identify the ID's given to the user and retrieved back to
 // be put as the object of a predicate.
 // This way quirk can handle the UID how they're supposed to be handled.
-type UID string
+type UID struct {
+	uid   string
+	isNew bool
+}
+
+func (u UID) Value() string {
+	return u.uid
+}
+
+func (u UID) IsNew() bool {
+	return u.isNew
+}
 
 // queryDecode is our type when unmarshalling a query response.
 type queryDecode map[string][]struct{ UID *string }
 
 // mutateSingle is used to pass into a worker function to call.
-type mutateSingle func(context.Context, DgraphClient, interface{}, map[string]string, *sync.Mutex) (bool, error)
+type mutateSingle func(context.Context, DgraphClient, interface{}, map[string]UID, *sync.Mutex) (bool, error)

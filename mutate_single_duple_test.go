@@ -19,7 +19,7 @@ func TestMutateSingleDupleNode(t *testing.T) {
 			Duples:     []Duple{},
 		}
 
-		uidMap := make(map[string]string)
+		uidMap := make(map[string]UID)
 		ctx := context.Background()
 
 		g.It("should be empty, false, and nil", func() {

@@ -66,7 +66,7 @@ func main() {
 
 	// Use the quirk client to insert a single node.
 	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
-		SetSingleStruct: &Person{Name: "John", SSN: "126", Policy: "JKL"}})
+		SetSingleStruct: &Person{Name: "Damien", SSN: "126", Policy: "JKL"}})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}

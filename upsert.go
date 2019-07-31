@@ -37,6 +37,14 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 				new: new,
 			}
 		}
+	} else {
+		err = updateNode(ctx, txn, &builder, identifier, dat, uid)
+		if err != nil {
+			return &upsertResponse{
+				err: err,
+				new: new,
+			}
+		}
 	}
 
 	return &upsertResponse{

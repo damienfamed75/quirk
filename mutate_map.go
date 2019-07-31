@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) mutateStringMap(ctx context.Context, dg DgraphClient,
-	d map[string]string, uidMap map[string]string, m sync.Locker) (bool, error) {
+	d map[string]string, uidMap map[string]UID, m sync.Locker) (bool, error) {
 	// Convert out map[string]string to usable predicate and value data.
 	predVals := c.mapToPredValPairs(d)
 
@@ -14,7 +14,7 @@ func (c *Client) mutateStringMap(ctx context.Context, dg DgraphClient,
 }
 
 func (c *Client) mutateDynamicMap(ctx context.Context, dg DgraphClient,
-	d map[string]interface{}, uidMap map[string]string, m sync.Locker) (bool, error) {
+	d map[string]interface{}, uidMap map[string]UID, m sync.Locker) (bool, error) {
 	// Convert out map[string]interface{} to usable predicate and value data.
 	predVals := c.dynamicMapToPredValPairs(d)
 
