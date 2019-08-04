@@ -104,9 +104,9 @@ func main() {
 	for k, v := range uidMap {
 		count++
 		if count%3 == 0 {
-			fmt.Fprintf(w, "%s\t%s\t\n", k, v)
+			fmt.Fprintf(w, "%s\t%v\t\n", k, v.Value())
 		} else {
-			fmt.Fprintf(w, "%s\t%s\t", k, v)
+			fmt.Fprintf(w, "%s\t%v\t", k, v.Value())
 		}
 	}
 	w.Flush()

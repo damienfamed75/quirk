@@ -14,6 +14,7 @@ import (
 type Client struct {
 	predicateKey string
 	logger       logging.Logger
+	template     string
 }
 
 // setupClient returns the default states of a quirk client.
@@ -21,6 +22,7 @@ func setupClient() *Client {
 	return &Client{
 		logger:       NewNilLogger(),
 		predicateKey: "name",
+		template:     templateDefault,
 	}
 }
 

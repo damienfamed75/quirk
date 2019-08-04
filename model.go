@@ -47,15 +47,21 @@ type (
 		Alter(context.Context, *api.Operation) error
 		NewTxn() *dgo.Txn
 	}
+
+	// UID is used to identify the ID's given to the user and retrieved back to
+	// be put as the object of a predicate.
+	// This way quirk can handle the UID how they're supposed to be handled.
+	// Note: Use this struct as the Object for Duples to create relationships.
+	UID struct {
+		uid   string
+		isNew bool
+	}
 )
 
 // non exported structures.
 type (
-	predValDat struct {
-		predicate string
-		value     interface{}
-		isUnique  bool
-	}
+	// upsertResponse is used to cleanup the large amount of info
+	// that the upserting function returns.
 	upsertResponse struct {
 		new        bool
 		err        error
@@ -72,6 +78,7 @@ type (
 		Commit(context.Context) error
 		Discard(context.Context) error
 	}
+
 	builder interface {
 		io.Writer
 		String() string
@@ -79,12 +86,28 @@ type (
 	}
 )
 
+// non exported aliases.
+type (
+	// Credit: The Go Authors @ "encoding/json"
+	// tagOptions is the string following a comma in a struct field's "quirk"
+	// tag, or the empty string. It does not include the leading comma.
+	tagOptions string
+
+	// queryDecode is our type when unmarshalling a query response.
+	queryDecode map[string][]struct{ UID *string }
+
+	// mutateSingle is used to pass into a worker function to call.
+	mutateSingle func(context.Context, DgraphClient, interface{}, map[string]UID, *sync.Mutex) (bool, error)
+)
+
+// DupleNode ---
+
 // Unique will loop through the Duples and return a new slice
 // containing all duples that are marked as unique.
 func (d *DupleNode) Unique() (duples []Duple) {
-	for _, v := range d.Duples {
-		if v.IsUnique {
-			duples = append(duples, v)
+	for i := 0; i < len(d.Duples); i++ {
+		if d.Duples[i].IsUnique {
+			duples = append(duples, d.Duples[i])
 		}
 	}
 	return duples
@@ -93,8 +116,8 @@ func (d *DupleNode) Unique() (duples []Duple) {
 // Find will return a reference to a duple given that it is found
 // in the slice of duples in the DupleNode.
 func (d *DupleNode) Find(predicate string) *Duple {
-	for i, dple := range d.Duples {
-		if dple.Predicate == predicate {
+	for i := 0; i < len(d.Duples); i++ {
+		if d.Duples[i].Predicate == predicate {
 			return &d.Duples[i]
 		}
 	}
@@ -105,12 +128,10 @@ func (d *DupleNode) Find(predicate string) *Duple {
 // SetOrAdd will set a pre existing duple in the DupleNode or
 // if the Duple doesn't exist, then it will be added to the Node.
 func (d *DupleNode) SetOrAdd(duple Duple) *DupleNode {
-	for i, dple := range d.Duples {
-		if dple.Predicate == duple.Predicate {
-			d.Duples[i].Object = duple.Object
-			d.Duples[i].IsUnique = duple.IsUnique
-			return d
-		}
+	if found := d.Find(duple.Predicate); found != nil {
+		found.Object = duple.Object
+		found.IsUnique = duple.IsUnique
+		return d
 	}
 
 	return d.AddDuples(duple)
@@ -123,29 +144,16 @@ func (d *DupleNode) AddDuples(duple ...Duple) *DupleNode {
 	return d
 }
 
-// Credit: The Go Authors @ "encoding/json"
-// tagOptions is the string following a comma in a struct field's "quirk"
-// tag, or the empty string. It does not include the leading comma.
-type tagOptions string
+// UID ---
 
-// UID is used to identify the ID's given to the user and retrieved back to
-// be put as the object of a predicate.
-// This way quirk can handle the UID how they're supposed to be handled.
-type UID struct {
-	uid   string
-	isNew bool
-}
-
+// Value returns the raw string value of the UID.
+// Note: Do not use this as the Object for Duples to create relationships.
 func (u UID) Value() string {
 	return u.uid
 }
 
+// IsNew returns a simple boolean value indicating whether or not this node
+// was a newly added node or if it was pre existing in Dgraph.
 func (u UID) IsNew() bool {
 	return u.isNew
 }
-
-// queryDecode is our type when unmarshalling a query response.
-type queryDecode map[string][]struct{ UID *string }
-
-// mutateSingle is used to pass into a worker function to call.
-type mutateSingle func(context.Context, DgraphClient, interface{}, map[string]UID, *sync.Mutex) (bool, error)

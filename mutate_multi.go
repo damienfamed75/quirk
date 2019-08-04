@@ -8,8 +8,8 @@ import (
 
 	"github.com/damienfamed75/quirk/logging"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/dgraph-io/dgo/y"
-	"go.uber.org/zap"
 )
 
 var (
@@ -35,10 +35,13 @@ func (c *Client) mutateMulti(ctx context.Context, dg DgraphClient,
 		limit = len(dat)
 	}
 
+	bar := pb.ProgressBarTemplate(c.template).Start(len(dat))
+	bar.SetWidth(bar.Width()/2 + bar.Width()/4)
+
 	// Launch workers.
 	for i := 0; i < limit; i++ {
 		wg.Add(1)
-		go mutationWorker(ctx, dg, &wg, &m, mutateFunc, c.logger,
+		go mutationWorker(ctx, dg, &wg, &m, mutateFunc, c.logger, bar,
 			uidMap, read, quit, done)
 	}
 
@@ -49,10 +52,10 @@ func (c *Client) mutateMulti(ctx context.Context, dg DgraphClient,
 
 	close(read)
 
-	return launchWorkers(limit, &wg, done, quit)
+	return launchWorkers(limit, &wg, bar, done, quit)
 }
 
-func launchWorkers(limit int, wg *sync.WaitGroup,
+func launchWorkers(limit int, wg *sync.WaitGroup, bar *pb.ProgressBar,
 	done chan error, quit chan bool) error {
 
 	var err error
@@ -68,12 +71,13 @@ func launchWorkers(limit int, wg *sync.WaitGroup,
 	}
 
 	wg.Wait()
+	bar.Finish()
 
 	return err
 }
 
 func mutationWorker(ctx context.Context, dg DgraphClient, wg *sync.WaitGroup,
-	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger,
+	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger, bar *pb.ProgressBar,
 	uidMap map[string]UID, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()
@@ -86,13 +90,6 @@ ReadLoop:
 		// is received from a mutation.
 	Forever:
 		for {
-			if time.Since(lastStatus) > 100*time.Millisecond {
-				logger.Debug("Insert status",
-					zap.Uint64("Success", atomic.LoadUint64(&successCount)),
-					zap.Uint64("Retries", atomic.LoadUint64(&retryCount)))
-				lastStatus = time.Now()
-			}
-
 			// MutateSingleStruct with received struct.
 			new, mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
 
@@ -111,6 +108,10 @@ ReadLoop:
 				break ReadLoop
 			}
 		}
+
+		// Increment the progress bar once the node is either sucessfully added
+		// or sucessfully updated.
+		bar.Increment()
 	}
 
 	// Mark done.

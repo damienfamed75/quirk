@@ -11,7 +11,8 @@ const (
 )
 
 const (
-	maxWorkers = 50
+	templateDefault = `{{ cyan "Inserting Nodes:" }} {{counters .}} {{ bar . "[" "=" (cycle . ">" ) " " "]"}} [{{etime . | cyan }}:{{rtime . | cyan }}] {{percent .}}`
+	maxWorkers      = 50
 )
 
 const tagUnique tagOptions = "unique"

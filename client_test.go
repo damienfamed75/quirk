@@ -105,12 +105,9 @@ func TestInsertNode(t *testing.T) {
 		multiset := []interface{}{&testPersonCorrect}
 
 		g.It("should not error and return an empty map", func() {
-			uids, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{
+			_, err := c.InsertNode(ctx, dgo.NewDgraphClient(&testDgraphClient{
 				queryResponse: testValidJSONOutput}),
 				&Operation{SetMultiStruct: multiset})
-
-			g.Assert(len(uids)).
-				Equal(0)
 
 			g.Assert(err).
 				Equal(error(nil))

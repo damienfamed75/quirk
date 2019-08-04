@@ -21,3 +21,12 @@ func WithPredicateKey(predicateName string) ClientConfiguration {
 		c.predicateKey = predicateName
 	}
 }
+
+// WithTemplate sets the field in the Quirk client that
+// uses a progress bar to show the nodes being inserted with multi
+// node sets.
+func WithTemplate(tmpl string) ClientConfiguration {
+	return func(c *Client) {
+		c.template = tmpl
+	}
+}

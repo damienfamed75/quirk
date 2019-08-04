@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/dgraph-io/dgo"
 	. "github.com/franela/goblin"
 )
@@ -36,7 +37,7 @@ func TestLaunchWorkers(t *testing.T) {
 		)
 
 		g.It("should not error", func() {
-			g.Assert(launchWorkers(0, &sync.WaitGroup{}, done, quit)).
+			g.Assert(launchWorkers(0, &sync.WaitGroup{}, &pb.ProgressBar{}, done, quit)).
 				Equal(nil)
 		})
 	})
@@ -65,7 +66,7 @@ func TestMutationWorker(t *testing.T) {
 			wg.Add(1)
 			api.shouldAbort = false
 			// oof that's a lot of parameters...
-			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, uidMap, read, quit, done)
+			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, &pb.ProgressBar{}, uidMap, read, quit, done)
 
 			// So then the logging if statement passes.
 			time.Sleep(200 * time.Millisecond)
@@ -87,7 +88,7 @@ func TestMutationWorker(t *testing.T) {
 			wg.Add(1)
 			api.shouldAbort = true
 			// oof that's a lot of parameters...
-			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, uidMap, read, quit, done)
+			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, &pb.ProgressBar{}, uidMap, read, quit, done)
 
 			read <- &testPersonCorrect
 

@@ -27,9 +27,6 @@ func TestMutateSingleStruct(t *testing.T) {
 
 			g.Assert(err).
 				Equal(error(nil))
-
-			g.Assert(len(uidMap)).
-				Equal(0)
 		})
 
 		g.It("should be not empty, false, and nil when new", func() {
