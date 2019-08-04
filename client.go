@@ -3,7 +3,6 @@ package quirk
 import (
 	"context"
 	"sync"
-	"unsafe"
 
 	"github.com/damienfamed75/quirk/logging"
 )
@@ -77,7 +76,7 @@ func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) 
 		err = c.mutateMulti(ctx, dg, tmp, uidMap, c.mutateSingleDupleNode)
 	}
 
-	return *(*map[string]UID)(unsafe.Pointer(&uidMap)), err
+	return uidMap, err
 }
 
 // GetPredicateKey returns the name of the field(predicate) that will
