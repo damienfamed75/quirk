@@ -26,7 +26,7 @@ func (c *Client) reflectMaps(d interface{}) *DupleNode {
 	elem := reflect.ValueOf(d).Elem()
 	numFields := elem.NumField()
 	duple := &DupleNode{
-		Duples: make([]Duple, numFields),
+		// Duples: make([]Duple, numFields),
 	}
 
 	var (
@@ -37,14 +37,18 @@ func (c *Client) reflectMaps(d interface{}) *DupleNode {
 	// loop through elements of struct.
 	for i := 0; i < numFields; i++ {
 		tag, opt = parseTag(reflect.TypeOf(d).Elem().Field(i).Tag.Get(quirkTag))
+		if tag == "" {
+			continue
+		}
 
 		// Add the predicate and value to the slice.
-		duple.Duples[i] = Duple{
+		// duple.Duples[i] = Duple{
+		duple.Duples = append(duple.Duples, Duple{
 			Predicate: tag, // first quirk tag.
 			Object:    elem.Field(i).Interface(),
 			IsUnique:  opt == tagUnique, // if the second option is "unique"
 			// dataType:  checkType(elem.Field(i).Interface()),
-		}
+		})
 
 		if tag == c.predicateKey {
 			duple.Identifier = duple.Duples[i].Object.(string)
