@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/damienfamed75/quirk/logging"
+	"github.com/damienfamed75/yalp"
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/dgraph-io/dgo"
@@ -78,7 +78,7 @@ func launchWorkers(limit int, wg *sync.WaitGroup, bar *pb.ProgressBar,
 }
 
 func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup,
-	m *sync.Mutex, mutateSingleStruct mutateSingle, logger logging.Logger, bar *pb.ProgressBar,
+	m *sync.Mutex, mutateSingleStruct mutateSingle, logger yalp.Logger, bar *pb.ProgressBar,
 	uidMap map[string]UID, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
 	defer wg.Done()

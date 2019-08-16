@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/damienfamed75/quirk/logging"
+	"github.com/damienfamed75/yalp"
 	"github.com/dgraph-io/dgo"
 )
 
@@ -13,7 +13,7 @@ import (
 // upsert procedure.
 type Client struct {
 	predicateKey string
-	logger       logging.Logger
+	logger       yalp.Logger
 	template     string
 }
 

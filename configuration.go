@@ -1,6 +1,6 @@
 package quirk
 
-import "github.com/damienfamed75/quirk/logging"
+import "github.com/damienfamed75/yalp"
 
 // ClientConfiguration is used to pass in options
 // to change the client and customize it to the user's liking.
@@ -8,7 +8,7 @@ type ClientConfiguration func(*Client)
 
 // WithLogger sets the logger used by the quirk client.
 // By default this is quirk.NewNilLogger.
-func WithLogger(l logging.Logger) ClientConfiguration {
+func WithLogger(l yalp.Logger) ClientConfiguration {
 	return func(c *Client) {
 		c.logger = l
 	}
