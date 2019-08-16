@@ -42,12 +42,6 @@ type (
 		dataType string
 	}
 
-	// DgraphClient is used to mock out the client when testing.
-	DgraphClient interface {
-		Alter(context.Context, *api.Operation) error
-		NewTxn() *dgo.Txn
-	}
-
 	// UID is used to identify the ID's given to the user and retrieved back to
 	// be put as the object of a predicate.
 	// This way quirk can handle the UID how they're supposed to be handled.
@@ -97,7 +91,7 @@ type (
 	queryDecode map[string][]struct{ UID *string }
 
 	// mutateSingle is used to pass into a worker function to call.
-	mutateSingle func(context.Context, DgraphClient, interface{}, map[string]UID, *sync.Mutex) (bool, error)
+	mutateSingle func(context.Context, *dgo.Dgraph, interface{}, map[string]UID, *sync.Mutex) (bool, error)
 )
 
 // DupleNode ---
