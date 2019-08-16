@@ -139,6 +139,8 @@ func (d *DupleNode) SetOrAdd(duple Duple) *DupleNode {
 
 // AddDuples appends new duples given in the function.
 // Then returns the reference to the DupleNode.
+// This function doesn't support updating previously added Duples though.
+// This should only be used when trying to optimize appending new duples.
 func (d *DupleNode) AddDuples(duple ...Duple) *DupleNode {
 	d.Duples = append(d.Duples, duple...)
 	return d
