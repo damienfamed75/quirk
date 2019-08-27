@@ -20,7 +20,7 @@ go get github.com/damienfamed75/quirk
 
 ## Using quirk
 
-Here is a quick example of using a quirk client.
+Here is a quick example of using a quirk client to insert a single node.
 
 ```go
 package main
