@@ -27,12 +27,12 @@ jobs:
       run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
     - name: Upload Coverage
-        uses: codecov/codecov-action@v1.0.2
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./coverage.txt
-          flags: unittests
-          name: codecov-quirk
+      uses: codecov/codecov-action@v1.0.2
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov-quirk
 
   build:
     name: Build
