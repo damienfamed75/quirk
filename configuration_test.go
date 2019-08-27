@@ -41,3 +41,16 @@ func TestWithPredicateKey(t *testing.T) {
 		})
 	})
 }
+
+func TestWithTemplate(t *testing.T) {
+	g := Goblin(t)
+
+	g.Describe("Template", func() {
+		temp := "template"
+		g.It("should equal template", func() {
+			g.Assert(NewClient(WithTemplate(temp)).template).
+				Equal(temp)
+		})
+	})
+
+}
