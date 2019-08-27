@@ -99,6 +99,6 @@ func main() {
 	// node's identifier. If not applicable then the keys will be set to the
 	// default, "data"
 	for k, v := range uidMap {
-		log.Printf("UIDMap: [%s] [%s]\n", k, v)
+		log.Printf("UIDMap: [%s] [%v]\n", k, v)
 	}
 }
