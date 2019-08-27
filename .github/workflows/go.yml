@@ -28,13 +28,14 @@ jobs:
 
   upload:
     name: Upload
-    - uses: actions/checkout@master
-    - uses: codecov/codecov-action@v1.0.2
-      with:
-        token: ${{secrets.CODECOV_TOKEN}}
-        file: ./coverage.txt
-        flags: unittests
-        name: codecov-quirk
+    steps:
+      - uses: actions/checkout@master
+      - uses: codecov/codecov-action@v1.0.2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.txt
+          flags: unittests
+          name: codecov-quirk
 
   build:
     name: Build
