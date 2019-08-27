@@ -3,9 +3,11 @@
 
 <p align="center">
 <a href="https://godoc.org/github.com/damienfamed75/quirk"><img src="https://godoc.org/github.com/damienfamed75/quirk?status.svg" alt="GoDoc" /></a>
+<a href="https://github.com/damienfamed75/quirk/releases"><img src="https://badgen.net/github/release/damienfamed75/quirk"></a>
 <a href="https://goreportcard.com/report/github.com/damienfamed75/quirk"><img src="https://goreportcard.com/badge/github.com/damienfamed75/quirk" alt="Go Report Card" /></a>
 <a href="https://github.com/damienfamed75/quirk/blob/master/LICENSE"><img src="https://img.shields.io/github/license/damienfamed75/quirk.svg" alt="License" /></a>
-<a href="https://github.com/damienfamed75/quirk/actions"><img src="https://github.com/damienfamed75/quirk/workflows/Go/badge.svg" /></a>
+<a href="https://github.com/damienfamed75/quirk/actions"><img src="https://github.com/damienfamed75/quirk/workflows/Build/badge.svg" /></a>
+<a href="https://codecov.io/gh/damienfamed75/quirk"><img src="https://codecov.io/gh/damienfamed75/quirk/branch/master/graph/badge.svg"/></a>
 </p>
 
 <p align="center">Quirk is a library used to seemlessly use upsert procedures in Dgraph without going through the hassle yourself.</p>
@@ -20,7 +22,7 @@ go get github.com/damienfamed75/quirk
 
 ## Using quirk
 
-Here is a quick example of using a quirk client.
+Here is a quick example of using a quirk client to insert a single node.
 
 ```go
 package main

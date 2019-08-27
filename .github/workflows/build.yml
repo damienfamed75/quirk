@@ -1,4 +1,4 @@
-name: Go
+name: Build
 on: [push, pull_request]
 jobs:
   test:
@@ -24,7 +24,15 @@ jobs:
         fi
       
     - name: Test
-      run: go test -v ./...
+      run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v1.0.2
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov-quirk
 
   build:
     name: Build
@@ -50,3 +58,12 @@ jobs:
 
     - name: Build
       run: go build -v .
+      
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
+      uses: Ilshidur/action-discord@0.0.2
+      with:
+        args: >
+          [Quirk](https://github.com/damienfamed75/quirk) built and tested.\n
+          [Pipeline](https://github.com/damienfamed75/quirk/actions)\n
