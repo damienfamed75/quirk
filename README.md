@@ -6,10 +6,9 @@
 <a href="https://goreportcard.com/report/github.com/damienfamed75/quirk"><img src="https://goreportcard.com/badge/github.com/damienfamed75/quirk" alt="Go Report Card" /></a>
 <a href="https://github.com/damienfamed75/quirk/blob/master/LICENSE"><img src="https://img.shields.io/github/license/damienfamed75/quirk.svg" alt="License" /></a>
 <a href="https://github.com/damienfamed75/quirk/actions"><img src="https://github.com/damienfamed75/quirk/workflows/Go/badge.svg" /></a>
+<a href="https://codecov.io/gh/damienfamed75/quirk"><img src="https://codecov.io/gh/damienfamed75/quirk/branch/master/graph/badge.svg"/></a>
 </p>
-<a href="https://codecov.io/gh/damienfamed75/quirk">
-  <img src="https://codecov.io/gh/damienfamed75/quirk/branch/master/graph/badge.svg" />
-</a>
+
 <p align="center">Quirk is a library used to seemlessly use upsert procedures in Dgraph without going through the hassle yourself.</p>
 
 ## Install
