@@ -25,9 +25,16 @@ jobs:
       
     - name: Test
       run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
-      
-    - name: Upload
-      run: bash <(curl -s https://codecov.io/bash)
+
+  upload:
+    name: Upload
+    - uses: actions/checkout@master
+    - uses: codecov/codecov-action@v1.0.2
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov-quirk
 
   build:
     name: Build
