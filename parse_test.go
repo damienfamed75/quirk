@@ -120,5 +120,12 @@ func TestCheckType(t *testing.T) {
 			g.Assert(b).
 				Equal("")
 		})
+		g.It("Should be byte with byte slice", func() {
+			var a []byte
+			b := checkType(a)
+
+			g.Assert(b).
+				Equal(xsByte)
+		})
 	})
 }

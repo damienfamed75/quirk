@@ -2,6 +2,7 @@ package quirk
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/dgraph-io/dgo"
@@ -30,15 +31,21 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 	var new bool
 	if uid == "" {
 		new = true
-		uid, err = setNewNode(ctx, txn, &builder, identifier, dat)
+		uidMap, err := setNode(ctx, txn, &builder, "_:"+identifier, dat)
 		if err != nil {
 			return &upsertResponse{
 				err: err,
 				new: new,
 			}
 		}
+		if uid = uidMap[identifier]; uid == "" {
+			return &upsertResponse{
+				err: errors.New(msgMutationHadNoUID),
+				new: new,
+			}
+		}
 	} else {
-		err = updateNode(ctx, txn, &builder, identifier, dat, uid)
+		_, err = setNode(ctx, txn, &builder, "<"+uid+">", dat)
 		if err != nil {
 			return &upsertResponse{
 				err: err,

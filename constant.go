@@ -18,13 +18,8 @@ const (
 const tagUnique tagOptions = "unique"
 
 const (
-	rdfBase      = "_:%s <%s> \"%v\""
-	rdfReference = "_:%s <%s> <%v>"
-)
-
-const (
-	rdfOldBase      = "<%s> <%s> \"%v\""
-	rdfOldReference = "<%s> <%s> <%v>"
+	rdfBase      = "%s <%s> \"%v\""
+	rdfReference = "%s <%s> <%v>"
 )
 
 const (
