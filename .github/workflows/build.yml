@@ -66,4 +66,8 @@ jobs:
       with:
         args: >
           Quirk built and tested.
+          
           [Pipeline](https://github.com/damienfamed75/quirk/actions)
+          
+          ![Status](https://github.com/damienfamed75/quirk/workflows/Build/badge.svg)
+          <img src="https://github.com/damienfamed75/quirk/workflows/Build/badge.svg">
