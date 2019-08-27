@@ -65,7 +65,5 @@ jobs:
       uses: Ilshidur/action-discord@0.0.2
       with:
         args: >
-          Quirk built and tested.\n
+          [Quirk](https://github.com/damienfamed75/quirk) built and tested.\n
           [Pipeline](https://github.com/damienfamed75/quirk/actions)\n
-          ![Status](https://github.com/damienfamed75/quirk/workflows/Build/badge.svg)
-          <img src="https://github.com/damienfamed75/quirk/workflows/Build/badge.svg">
