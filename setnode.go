@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
 // setNode will build a mutation RDF with the builder and will then
 // execute it using the given transaction. Once executed it will return the UID map.
-func setNode(ctx context.Context, txn dgraphTxn, b builder,
+func setNode(ctx context.Context, txn *dgo.Txn, b builder,
 	identifier string, dat *DupleNode) (map[string]string, error) {
 	for _, d := range dat.Duples {
 		d.dataType = checkType(d.Object)

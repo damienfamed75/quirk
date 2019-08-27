@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
 )
 
 // Exported structures for the Client to use.
@@ -66,13 +65,6 @@ type (
 
 // interfaces used within for testing.
 type (
-	dgraphTxn interface {
-		Query(context.Context, string) (*api.Response, error)
-		Mutate(context.Context, *api.Mutation) (*api.Assigned, error)
-		Commit(context.Context) error
-		Discard(context.Context) error
-	}
-
 	builder interface {
 		io.Writer
 		String() string
