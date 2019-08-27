@@ -23,6 +23,9 @@ const (
 	// This is used when the data given doesn't contain any
 	// set predicate key in the Quirk client.
 	blankDefault = "data"
+	// used as the default identifier when inserting a node.
+	// Any node that is inserted with Quirk should have this.
+	predicateKeyDefault = "name"
 )
 
 const tagUnique tagOptions = "unique"

@@ -22,7 +22,7 @@ type Client struct {
 func setupClient() *Client {
 	return &Client{
 		logger:         NewNilLogger(),
-		predicateKey:   "name",
+		predicateKey:   predicateKeyDefault,
 		template:       templateDefault,
 		maxWorkerCount: maxWorkers,
 	}
