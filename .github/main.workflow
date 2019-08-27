@@ -1,6 +1,9 @@
 workflow "Test" {
+  resolves = [
+    "CodeCov",
+    "Ilshidur/action-discord@master",
+  ]
   on = "push"
-  resolves = ["CodeCov"]
 }
 
 action "Setup Go" {
@@ -12,4 +15,9 @@ action "CodeCov" {
   needs = ["Setup Go"]
   args = "codecov"
   secrets = ["CODECOV_TOKEN"]
+}
+
+action "Ilshidur/action-discord@master" {
+  uses = "Ilshidur/action-discord@master"
+  secrets = ["DISCORD_WEBHOOK"]
 }
