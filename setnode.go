@@ -7,10 +7,10 @@ import (
 	"github.com/dgraph-io/dgo/protos/api"
 )
 
-// setNewNode will build a mutation RDF with the builder and will then
-// execute it using the given transaction. Once executed it will return the UID.
-func setNewNode(ctx context.Context, txn dgraphTxn, b builder,
-	identifier string, dat *DupleNode) (string, error) {
+// setNode will build a mutation RDF with the builder and will then
+// execute it using the given transaction. Once executed it will return the UID map.
+func setNode(ctx context.Context, txn dgraphTxn, b builder,
+	identifier string, dat *DupleNode) (map[string]string, error) {
 	for _, d := range dat.Duples {
 		d.dataType = checkType(d.Object)
 		if uid, ok := d.Object.(UID); ok {
@@ -28,14 +28,8 @@ func setNewNode(ctx context.Context, txn dgraphTxn, b builder,
 	// Use our transaction to execute a mutation to add our new node.
 	assigned, err := txn.Mutate(ctx, &api.Mutation{SetNquads: []byte(b.String())})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	uid := assigned.GetUids()[identifier]
-	if uid == "" {
-		return "", &TransactionError{
-			Msg: msgMutationHadNoUID, Function: "setNewNode", RDF: b.String()}
-	}
-
-	return uid, nil
+	return assigned.GetUids(), nil
 }
