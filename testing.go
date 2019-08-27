@@ -102,10 +102,10 @@ var (
 
 	testPredValCorrect = &DupleNode{
 		Duples: []Duple{
-			Duple{Predicate: "username", Object: testPersonCorrect.Username, IsUnique: true},
-			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
-			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
-			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+			{Predicate: "username", Object: testPersonCorrect.Username, IsUnique: true},
+			{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
 		},
 	}
 
@@ -123,10 +123,10 @@ var (
 
 	testPredValInvalid = &DupleNode{
 		Duples: []Duple{
-			Duple{Predicate: "", Object: testPersonCorrect.Username, IsUnique: false},
-			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
-			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
-			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+			{Predicate: "", Object: testPersonCorrect.Username, IsUnique: false},
+			{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
 		},
 	}
 )

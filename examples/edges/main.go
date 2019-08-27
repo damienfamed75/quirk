@@ -75,13 +75,16 @@ func main() {
 		SetSingleDupleNode: &quirk.DupleNode{
 			Identifier: "Damien",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "Damien"},
-				quirk.Duple{Predicate: "ssn", Object: "127"},
-				quirk.Duple{Predicate: "policy", Object: "LKJ"},
-				quirk.Duple{Predicate: "friendsWith", Object: uidMap["John"]},
+				{Predicate: "name", Object: "Damien"},
+				{Predicate: "ssn", Object: "127"},
+				{Predicate: "policy", Object: "LKJ"},
+				{Predicate: "friendsWith", Object: uidMap["John"]},
 			},
 		},
 	})
+	if err != nil {
+		log.Fatalf("Error when inserting node [%v]\n", err)
+	}
 
 	// Finally print out the successful UIDs.
 	// The key is typically going to be either your
