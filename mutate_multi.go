@@ -3,8 +3,6 @@ package quirk
 import (
 	"context"
 	"sync"
-	"sync/atomic"
-	"time"
 
 	"github.com/damienfamed75/yalp"
 
@@ -13,30 +11,27 @@ import (
 	"github.com/dgraph-io/dgo/y"
 )
 
-var (
-	lastStatus   = time.Now()
-	successCount uint64
-	retryCount   uint64
-)
-
 // mutateMulti is used for all kinds of mutating any multiple type.
 func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	dat []interface{}, uidMap map[string]UID, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
-		limit = c.maxWorkerCount
-		wg    sync.WaitGroup
-		m     sync.Mutex
-		quit  = make(chan bool)
-		read  = make(chan interface{}, len(dat))
-		done  = make(chan error)
+		wg     sync.WaitGroup
+		m      sync.Mutex
+		limit  = c.maxWorkerCount
+		datLen = len(dat)
+		quit   = make(chan bool)
+		read   = make(chan interface{}, datLen)
+		done   = make(chan error)
 	)
 
+	// If there is less data than the max worker count.
 	if len(dat) < maxWorkers {
-		limit = len(dat)
+		limit = datLen
 	}
 
-	bar := pb.ProgressBarTemplate(c.template).Start(len(dat))
+	// Create the progress bar.
+	bar := pb.ProgressBarTemplate(c.template).Start(datLen)
 	bar.SetWidth(bar.Width()/2 + bar.Width()/4)
 
 	// Launch workers.
@@ -63,14 +58,17 @@ func launchWorkers(limit int, wg *sync.WaitGroup, bar *pb.ProgressBar,
 	// Wait for workers to finish.
 	// receive results from channel.
 	for i := 0; i < limit; i++ {
+		// Read the write error from the done channel.
 		werr := <-done
 		if werr != nil {
 			err = werr
+			// Close the quit channel to stop the rest of the workers.
 			close(quit)
 			i = limit
 		}
 	}
 
+	// Wait for all the workers to finish.
 	wg.Wait()
 	bar.Finish()
 
@@ -92,18 +90,14 @@ ReadLoop:
 	Forever:
 		for {
 			// MutateSingleStruct with received struct.
-			new, mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
+			_, mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
 
 			switch mutErr {
 			case nil:
-				if new {
-					// If a successful new node was added then count up.
-					atomic.AddUint64(&successCount, 1)
-				}
+				// If the node was successful then continue to next node.
 				break Forever
 			case y.ErrAborted:
 				// If the transaction was aborted then retry.
-				atomic.AddUint64(&retryCount, 1)
 			default:
 				err = mutErr
 				break ReadLoop
@@ -117,8 +111,11 @@ ReadLoop:
 
 	// Mark done.
 	select {
+	// Insert the err variable into done.
+	// Note: err can be a nil error and an actual error.
 	case done <- err:
 		return
+	// If a signal was given from quit then return immediately.
 	case <-quit:
 		return
 	}
