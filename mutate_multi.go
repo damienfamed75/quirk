@@ -110,8 +110,8 @@ ReadLoop:
 			}
 		}
 
-		// Increment the progress bar once the node is either sucessfully added
-		// or sucessfully updated.
+		// Increment the progress bar once the node is either successfully added
+		// or successfully updated.
 		bar.Increment()
 	}
 
