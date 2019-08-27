@@ -24,7 +24,7 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	dat []interface{}, uidMap map[string]UID, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
-		limit = maxWorkers
+		limit = c.maxWorkerCount
 		wg    sync.WaitGroup
 		m     sync.Mutex
 		quit  = make(chan bool)

@@ -12,17 +12,19 @@ import (
 // the logger when inserting nodes into Dgraph using a proper
 // upsert procedure.
 type Client struct {
-	predicateKey string
-	logger       yalp.Logger
-	template     string
+	predicateKey   string
+	logger         yalp.Logger
+	template       string
+	maxWorkerCount int
 }
 
 // setupClient returns the default states of a quirk client.
 func setupClient() *Client {
 	return &Client{
-		logger:       NewNilLogger(),
-		predicateKey: "name",
-		template:     templateDefault,
+		logger:         NewNilLogger(),
+		predicateKey:   "name",
+		template:       templateDefault,
+		maxWorkerCount: maxWorkers,
 	}
 }
 
