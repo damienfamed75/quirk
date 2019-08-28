@@ -26,14 +26,6 @@ jobs:
     - name: Test
       run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
-    - name: Upload Coverage
-      uses: codecov/codecov-action@v1.0.2
-      with:
-        token: ${{secrets.CODECOV_TOKEN}}
-        file: ./coverage.txt
-        flags: unittests
-        name: codecov-quirk
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -58,7 +50,21 @@ jobs:
 
     - name: Build
       run: go build -v .
-      
+  
+  codecov:
+    name: Code Coverage
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v1.0.2
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov-quirk
+  
   notify:
     name: Notify
     needs: [build, test]
@@ -73,4 +79,4 @@ jobs:
         DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
       uses: Ilshidur/action-discord@0.0.2
       with:
-        args: $MSG
+        args: $(cat $MSG)
