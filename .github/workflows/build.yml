@@ -59,11 +59,15 @@ jobs:
     - name: Build
       run: go build -v .
       
-    - name: Discord notification
+  notify:
+    name: Notify
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Send Notification
       env:
         DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
       uses: Ilshidur/action-discord@0.0.2
       with:
-        args: >
-          [Quirk](https://github.com/damienfamed75/quirk) built and tested.\n
-          [Pipeline](https://github.com/damienfamed75/quirk/actions)\n
+        args: github.event_name+" initiated for "+github.ref+".\n[Quirk](https://github.com/damienfamed75/quirk) built and tested.\n[Pipeline](https://github.com/damienfamed75/quirk/actions)"
