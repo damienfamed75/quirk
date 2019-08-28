@@ -72,4 +72,4 @@ jobs:
         DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
       uses: Ilshidur/action-discord@0.0.2
       with:
-        args: "$EVENT initiated for $REF.\n[Quirk](https://github.com/damienfamed75/quirk) built and tested.\n[Pipeline](https://github.com/damienfamed75/quirk/actions)"
+        args: $EVENT+" initiated for "+$REF+".\n[Quirk](https://github.com/damienfamed75/quirk) built and tested.\n[Pipeline](https://github.com/damienfamed75/quirk/actions)"
