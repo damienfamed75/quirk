@@ -10,7 +10,7 @@
 <a href="https://codecov.io/gh/damienfamed75/quirk"><img src="https://codecov.io/gh/damienfamed75/quirk/branch/master/graph/badge.svg"/></a>
 </p>
 
-<p align="center">Quirk is a library used to seemlessly use upsert procedures in Dgraph without going through the hassle yourself.</p>
+<p align="center">Quirk is a library used to seamlessly use upsert procedures in Dgraph without going through the hassle yourself.</p>
 
 ## Install
 
