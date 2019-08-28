@@ -69,7 +69,8 @@ jobs:
       env:
         EVENT: ${{github.event_name}}
         REF: ${{github.ref}}
+        MSG: format('{0} on {1}. For {2}\n', $EVENT, ${{github.ref}}, 'Quirk')
         DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
       uses: Ilshidur/action-discord@0.0.2
       with:
-        args: format('{0} initiated for {1}.\n[Quirk](https://github.com/damienfamed75/quirk) built and tested.\n[Pipeline](https://github.com/damienfamed75/quirk/actions)`, $EVENT, $REF)
+        args: $MSG
