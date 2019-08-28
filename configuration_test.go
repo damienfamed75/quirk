@@ -41,3 +41,15 @@ func TestWithPredicateKey(t *testing.T) {
 		})
 	})
 }
+
+func TestWithMaxWorkerCount(t *testing.T) {
+	g := Goblin(t)
+
+	g.Describe("Client max worker count", func() {
+		count := 2
+		g.It("should equal count", func() {
+			g.Assert(NewClient(WithMaxWorkerCount(count)).maxWorkerCount).
+				Equal(count)
+		})
+	})
+}

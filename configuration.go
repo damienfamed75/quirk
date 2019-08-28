@@ -30,3 +30,11 @@ func WithTemplate(tmpl string) ClientConfiguration {
 		c.template = tmpl
 	}
 }
+
+// WithMaxWorkerCount will set the maximum workers that will be spun when
+// using a Multi operation.
+func WithMaxWorkerCount(count int) ClientConfiguration {
+	return func(c *Client) {
+		c.maxWorkerCount = count
+	}
+}

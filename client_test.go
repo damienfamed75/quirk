@@ -172,10 +172,10 @@ func TestInsertNode(t *testing.T) {
 		duple := &DupleNode{
 			Identifier: "damienstamates",
 			Duples: []Duple{
-				Duple{Predicate: "username", Object: "damienstamates"},
-				Duple{Predicate: "website", Object: "github.com"},
-				Duple{Predicate: "accountAge", Object: 197},
-				Duple{Predicate: "email", Object: "damienstamates@gmail.com"},
+				{Predicate: "username", Object: "damienstamates"},
+				{Predicate: "website", Object: "github.com"},
+				{Predicate: "accountAge", Object: 197},
+				{Predicate: "email", Object: "damienstamates@gmail.com"},
 			},
 		}
 
@@ -194,13 +194,13 @@ func TestInsertNode(t *testing.T) {
 	g.Describe("Multiple Duple Nodes", func() {
 
 		duples := []*DupleNode{
-			&DupleNode{
+			{
 				Identifier: "damienstamates",
 				Duples: []Duple{
-					Duple{Predicate: "username", Object: "damienstamates"},
-					Duple{Predicate: "website", Object: "github.com"},
-					Duple{Predicate: "accountAge", Object: 197},
-					Duple{Predicate: "email", Object: "damienstamates@gmail.com"},
+					{Predicate: "username", Object: "damienstamates"},
+					{Predicate: "website", Object: "github.com"},
+					{Predicate: "accountAge", Object: 197},
+					{Predicate: "email", Object: "damienstamates@gmail.com"},
 				},
 			},
 		}

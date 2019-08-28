@@ -60,9 +60,9 @@ func main() {
 	dupleNode := &quirk.DupleNode{
 		Identifier: "John",
 		Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "John"},
-			quirk.Duple{Predicate: "ssn", Object: "126", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "JKL", IsUnique: true},
+			{Predicate: "name", Object: "John"},
+			{Predicate: "ssn", Object: "126", IsUnique: true},
+			{Predicate: "policy", Object: "JKL", IsUnique: true},
 		},
 	}
 
