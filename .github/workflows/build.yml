@@ -2,8 +2,16 @@ name: Build
 on: [push, pull_request]
 jobs:
   test:
+    # new service with volumes.
+    # save coverage in volume.
     name: Unit Tests
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
+          
     steps:
     
     - name: Set up Go 1.12
@@ -24,7 +32,7 @@ jobs:
         fi
       
     - name: Test
-      run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      run: go test -v -coverprofile=$GITHUB_WORKSPACE/coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
@@ -56,12 +64,13 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-    
+    # connect to job service volume.
+    # get coverage from there.
     - name: Upload Coverage
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: ./coverage.txt
+        file: $GITHUB_WORKSPACE/coverage.txt
         flags: unittests
         name: codecov-quirk
   
@@ -73,10 +82,5 @@ jobs:
     
     - name: Send Notification
       env:
-        EVENT: ${{github.event_name}}
-        REF: ${{github.ref}}
-        MSG: format('{0} on {1}. For {2}\n', $EVENT, ${{github.ref}}, 'Quirk')
         DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
       uses: Ilshidur/action-discord@0.0.2
-      with:
-        args: $(cat $MSG)
