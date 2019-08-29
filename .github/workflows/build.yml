@@ -64,3 +64,18 @@ jobs:
         file: ./coverage.txt
         flags: unittests
         name: codecov-quirk
+
+  notify:
+    name: Notification
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    
+    steps:
+    
+    - name: Send Build Status
+      env:
+        WEBHOOK_URL: ${{secrets.DISCORD_WEBHOOK}}
+      uses: WalshyDev/Discord-Status-Webhook@v1.0
+      with:
+        args: "Build Successful"
+
