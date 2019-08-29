@@ -6,12 +6,7 @@ jobs:
     # save coverage in volume.
     name: Unit Tests
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-          
+
     steps:
     
     - name: Set up Go 1.12
@@ -32,10 +27,11 @@ jobs:
         fi
       
     - name: Test
-      env:
-        REDIS_HOST: redis
-        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
-      run: sudo go test -v -coverprofile=$HOME/coverage.txt -covermode=atomic ./...
+      run: sudo go test -v -coverprofile=./.github/coverage.txt -covermode=atomic ./...
+
+    - name: Commit Coverage
+      uses: fnkr/github-action-git-bash@v1.1
+      args: ["bash", "-c", "git add -a && git commit -m \"coverage updated\" && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"]
 
   build:
     name: Build
@@ -66,35 +62,19 @@ jobs:
     name: Code Coverage
     needs: test
     runs-on: ubuntu-latest
-    
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379/tcp
           
     steps:
-    
-    - name: List Home
-      run: ls $HOME
-    
-    - name: Copy Coverage
-      run: cp $HOME/coverage.txt ./coverage.txt
       
-    - name: PWD
-      run: pwd
-      
-    - name: List
-      run: ls
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
     
     - name: Upload Coverage
       env:
-        REDIS_HOST: localhost
-        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: ./coverage.txt
+        file: ./.github/coverage.txt
         flags: unittests
         name: codecov-quirk
   
