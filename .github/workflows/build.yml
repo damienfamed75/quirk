@@ -78,17 +78,16 @@ jobs:
     # get coverage from there.
     
     - name: Upload Coverage
+      working-directory: ./redis
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
         file: ./coverage.txt
         flags: unittests
         name: codecov-quirk
-      
-      working-directory: ./redis
-      env:
-        REDIS_HOST: localhost
-        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
   
   notify:
     name: Notify
