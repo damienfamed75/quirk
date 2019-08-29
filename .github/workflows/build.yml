@@ -32,7 +32,7 @@ jobs:
         fi
       
     - name: Test
-      run: go test -v -coverprofile=${{job.services.<'redis'>.volumes[0]}}/coverage.txt -covermode=atomic ./...
+      run: go test -v -coverprofile=${{job.services.redis.volumes[0]}}/coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
@@ -63,6 +63,12 @@ jobs:
     name: Code Coverage
     needs: test
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
+          
     steps:
     # connect to job service volume.
     # get coverage from there.
@@ -70,7 +76,7 @@ jobs:
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: ${{jobs.<'test'>.services.<'redis'>.volumes[0]}}/coverage.txt
+        file: ${{job.services.redis.volumes[0]}}/coverage.txt
         flags: unittests
         name: codecov-quirk
   
