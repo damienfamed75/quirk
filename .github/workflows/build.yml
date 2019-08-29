@@ -35,7 +35,7 @@ jobs:
     - name: Commit Coverage
       uses: srt32/git-actions@v0.0.3
       with:
-        args: "git add -A .github && git commit -m \"coverage updated\" && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"
+        args: "git add -A .github && git commit -m 'coverage' && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"
 
   build:
     name: Build
