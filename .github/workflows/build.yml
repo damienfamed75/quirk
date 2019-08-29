@@ -20,6 +20,14 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+      
+    - name: Send Failure Status
+      if: failure()
+      env:
+        WEBHOOK_URL: ${{secrets.DISCORD_WEBHOOK}}
+      uses: WalshyDev/Discord-Status-Webhook@v1.0
+      with:
+        args: "failure"
 
   build:
     name: Build
@@ -78,4 +86,13 @@ jobs:
       uses: WalshyDev/Discord-Status-Webhook@v1.0
       with:
         args: "success"
+        
+    - name: Send Failure Status
+      if: cancelled()
+      env:
+        WEBHOOK_URL: ${{secrets.DISCORD_WEBHOOK}}
+      uses: WalshyDev/Discord-Status-Webhook@v1.0
+      with:
+        args: "failure"
+      
 
