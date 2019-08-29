@@ -78,7 +78,6 @@ jobs:
           - 6379/tcp
           
     steps:
-    - 
     
     # connect to job service volume.
     # get coverage from there.
