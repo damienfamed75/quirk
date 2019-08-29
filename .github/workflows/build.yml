@@ -10,7 +10,7 @@ jobs:
       redis:
         image: redis
         ports:
-          - 6379/tcp
+          - 6379:6379
           
     steps:
     
@@ -31,10 +31,11 @@ jobs:
             dep ensure
         fi
       
-    - name: Dev
-      run: redis-cli set foo bar
-      
     - name: Test
+      working-directory: ./redis
+      env:
+        REDIS_HOST: redis
+        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
       run: sudo go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
   build:
@@ -75,14 +76,16 @@ jobs:
     steps:
     # connect to job service volume.
     # get coverage from there.
-    - name: Dev
-      run: redis-cli get foo
     
     - name: Upload Coverage
+      working-directory: ./redis
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: ${{ job.services.redis.ports[6379] }}
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: coverage.txt
+        file: ./coverage.txt
         flags: unittests
         name: codecov-quirk
   
