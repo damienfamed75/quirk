@@ -32,11 +32,10 @@ jobs:
         fi
       
     - name: Test
-      working-directory: ./redis
       env:
         REDIS_HOST: redis
         REDIS_PORT: ${{ job.services.redis.ports[6379] }}
-      run: sudo go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      run: sudo go test -v -coverprofile=$GITHUB_WORKSPACE/coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
@@ -67,9 +66,6 @@ jobs:
     name: Code Coverage
     needs: test
     runs-on: ubuntu-latest
-   # env:
-   #   REDIS_HOST: localhost
-   #   REDIS_PORT: ${{ job.services.redis.ports[6379] }}
     
     services:
       redis:
@@ -80,8 +76,7 @@ jobs:
     steps:
     
     - name: Working Directory
-      working-directory: ./redis
-      run: cp coverage.txt $GITHUB_WORKSPACE/coverage.txt
+      run: cp $GITHUB_WORKSPACE/coverage.txt ./coverage.txt
       
     - name: Dev
       run: pwd
@@ -90,6 +85,9 @@ jobs:
       run: ls
     
     - name: Upload Coverage
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: ${{ job.services.redis.ports[6379] }}
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
