@@ -31,8 +31,11 @@ jobs:
             dep ensure
         fi
       
+    - name: Dev
+      run: pwd
+      
     - name: Test
-      run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      run: sudo go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
