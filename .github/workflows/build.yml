@@ -32,7 +32,7 @@ jobs:
         fi
       
     - name: Dev
-      run: pwd
+      run: redis-cli set foo bar
       
     - name: Test
       run: sudo go test -v -coverprofile=coverage.txt -covermode=atomic ./...
@@ -75,6 +75,9 @@ jobs:
     steps:
     # connect to job service volume.
     # get coverage from there.
+    - name: Dev
+      run: redis-cli get foo
+    
     - name: Upload Coverage
       uses: codecov/codecov-action@v1.0.2
       with:
