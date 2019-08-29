@@ -35,7 +35,7 @@ jobs:
       env:
         REDIS_HOST: redis
         REDIS_PORT: ${{ job.services.redis.ports[6379] }}
-      run: sudo go test -v -coverprofile=$GITHUB_WORKSPACE/coverage.txt -covermode=atomic ./...
+      run: sudo go test -v -coverprofile=$HOME/coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
@@ -75,10 +75,13 @@ jobs:
           
     steps:
     
-    - name: Working Directory
-      run: cp $GITHUB_WORKSPACE/coverage.txt ./coverage.txt
+    - name: List Home
+      run: ls $HOME
+    
+    - name: Copy Coverage
+      run: cp $HOME/coverage.txt ./coverage.txt
       
-    - name: Dev
+    - name: PWD
       run: pwd
       
     - name: List
