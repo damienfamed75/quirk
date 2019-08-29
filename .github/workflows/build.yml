@@ -18,24 +18,16 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
       
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
+#     - name: Get dependencies
+#       run: |
+#         go get -v -t -d ./...
+#         if [ -f Gopkg.toml ]; then
+#             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+#             dep ensure
+#         fi
       
     - name: Test
-      run: sudo go test -v -coverprofile=./.github/coverage.txt -covermode=atomic ./...
-
-    - name: Event Path
-      run: echo $GITHUB_EVENT_PATH
-
-    - name: Commit Coverage
-      uses: srt32/git-actions@v0.0.3
-      with:
-        args: "git add -A .github && git commit -m 'coverage' && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"
+      run: go test -v ./...
 
   build:
     name: Build
@@ -68,17 +60,32 @@ jobs:
     runs-on: ubuntu-latest
           
     steps:
+    
+    - name: Set up Go 1.12
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.12
+      id: go
       
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
+      
+#     - name: Get dependencies
+#       run: |
+#         go get -v -t -d ./...
+#         if [ -f Gopkg.toml ]; then
+#             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+#             dep ensure
+#         fi
+    
+    - name: Test
+      run: go test -v -coverprofile=./.github/coverage.txt -covermode=atomic ./...
     
     - name: Upload Coverage
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: ./.github/coverage.txt
+        file: ./coverage.txt
         flags: unittests
         name: codecov-quirk
   
