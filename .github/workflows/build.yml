@@ -29,10 +29,16 @@ jobs:
     - name: Test
       run: sudo go test -v -coverprofile=./.github/coverage.txt -covermode=atomic ./...
 
+    - name: Event
+      run: echo $GITHUB_EVENT_NAME
+      
+    - name: Actor
+      run: echo $GITHUB_ACTOR
+
     - name: Commit Coverage
       uses: srt32/git-actions@v0.0.3
       with:
-        args: "git add -a && git commit -m \"coverage updated\" && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"
+        args: "git add -A && git commit -m \"coverage updated\" && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"
 
   build:
     name: Build
