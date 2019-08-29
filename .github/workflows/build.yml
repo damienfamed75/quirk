@@ -32,7 +32,7 @@ jobs:
         fi
       
     - name: Test
-      run: go test -v -coverprofile=${{job.services.redis.volumes[0]}}/coverage.txt -covermode=atomic ./...
+      run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
   build:
     name: Build
@@ -76,7 +76,7 @@ jobs:
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: ${{job.services.redis.volumes[0]}}/coverage.txt
+        file: coverage.txt
         flags: unittests
         name: codecov-quirk
   
