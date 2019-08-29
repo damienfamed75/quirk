@@ -31,6 +31,7 @@ jobs:
 
     - name: Commit Coverage
       uses: fnkr/github-action-git-bash@v1.1
+      with:
         args: ["bash", "-c", "git add -a && git commit -m \"coverage updated\" && git remote set-url origin git@github.com:damienfamed75/quirk.git && git push --force origin master"]
 
   build:
