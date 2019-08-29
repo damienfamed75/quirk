@@ -77,5 +77,5 @@ jobs:
         WEBHOOK_URL: ${{secrets.DISCORD_WEBHOOK}}
       uses: WalshyDev/Discord-Status-Webhook@v1.0
       with:
-        args: "Build Successful"
+        args: "success"
 
