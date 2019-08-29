@@ -81,6 +81,13 @@ jobs:
     
     - name: Working Directory
       working-directory: ./redis
+      run: cp coverage.txt $GITHUB_WORKSPACE/coverage.txt
+      
+    - name: Dev
+      run: pwd
+      
+    - name: List
+      run: ls
     
     - name: Upload Coverage
       uses: codecov/codecov-action@v1.0.2
