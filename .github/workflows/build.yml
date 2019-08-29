@@ -78,12 +78,12 @@ jobs:
           - 6379/tcp
           
     steps:
+    working-directory: ./redis
     
     # connect to job service volume.
     # get coverage from there.
     
     - name: Upload Coverage
-      working-directory: ./redis
       uses: codecov/codecov-action@v1.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
