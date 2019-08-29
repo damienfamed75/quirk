@@ -78,7 +78,9 @@ jobs:
           - 6379/tcp
           
     steps:
-    - working-directory: ./redis
+    
+    - name: Working Directory
+      working-directory: ./redis
     
     - name: Upload Coverage
       uses: codecov/codecov-action@v1.0.2
