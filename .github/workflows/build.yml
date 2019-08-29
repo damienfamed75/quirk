@@ -67,9 +67,9 @@ jobs:
     name: Code Coverage
     needs: test
     runs-on: ubuntu-latest
-    env:
-      REDIS_HOST: localhost
-      REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+   # env:
+   #   REDIS_HOST: localhost
+   #   REDIS_PORT: ${{ job.services.redis.ports[6379] }}
     
     services:
       redis:
