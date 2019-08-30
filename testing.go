@@ -106,6 +106,8 @@ var (
 			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
 			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
 			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+			Duple{Predicate: "testUid", Object: UID{uid: "0x1", isNew: false}},
+			Duple{Predicate: "testByteSlice", Object: []byte{'h', 'e', 'l', 'l', 'o'}},
 		},
 	}
 

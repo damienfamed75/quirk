@@ -12,7 +12,7 @@ import (
 func TestSetNode(t *testing.T) {
 	g := Goblin(t)
 
-	g.Describe("tryUpsert", func() {
+	g.Describe("setNode", func() {
 		dgraph := dgo.NewDgraphClient(&testDgraphClient{
 			queryResponse: testValidJSONOutput,
 		})
