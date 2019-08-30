@@ -112,7 +112,7 @@ ReadLoop:
 	// Mark done.
 	select {
 	// Insert the err variable into done.
-	// Note: err can be a nil error and an actual error.
+	// Note: err can be nil or an actual error.
 	case done <- err:
 		return
 	// If a signal was given from quit then return immediately.
