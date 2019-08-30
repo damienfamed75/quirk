@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/csv"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
-	"text/tabwriter"
 	"time"
 
 	"github.com/damienfamed75/quirk"
@@ -94,25 +92,25 @@ func main() {
 	// Use the quirk client to insert multiple nodes at a time
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
-	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
+	_, err = c.InsertNode(context.Background(), dg, &quirk.Operation{
 		SetMultiStruct: people})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 4, 1, ' ',
-		tabwriter.AlignRight|tabwriter.Debug)
-	var count int
+	log.Printf("Time for insertions[%v]\n", time.Since(begin))
 
-	for k, v := range uidMap {
-		count++
-		if count%3 == 0 {
-			fmt.Fprintf(w, "%s\t%v\t\n", k, v.Value())
-		} else {
-			fmt.Fprintf(w, "%s\t%v\t", k, v.Value())
-		}
-	}
-	w.Flush()
+	// w := tabwriter.NewWriter(os.Stdout, 0, 4, 1, ' ',
+	// 	tabwriter.AlignRight|tabwriter.Debug)
+	// var count int
 
-	fmt.Printf("Inserted nodes in [%v]\n", time.Since(begin))
+	// for k, v := range uidMap {
+	// 	count++
+	// 	if count%3 == 0 {
+	// 		fmt.Fprintf(w, "%s\t%v\t\n", k, v.Value())
+	// 	} else {
+	// 		fmt.Fprintf(w, "%s\t%v\t", k, v.Value())
+	// 	}
+	// }
+	// w.Flush()
 }

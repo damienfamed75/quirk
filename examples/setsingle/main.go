@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"time"
 
 	"github.com/damienfamed75/quirk"
 
@@ -64,12 +65,16 @@ func main() {
 		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
 	}
 
+	begin := time.Now()
+
 	// Use the quirk client to insert a single node.
 	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
 		SetSingleStruct: &Person{Name: "Damien", SSN: "126", Policy: "JKL"}})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
+
+	log.Printf("Time for insertion [%v]\n", time.Since(begin))
 
 	// Finally print out the successful UIDs.
 	// The key is typically going to be either your

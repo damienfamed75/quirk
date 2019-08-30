@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"time"
 
 	"github.com/damienfamed75/quirk"
 
@@ -70,12 +71,16 @@ func main() {
 		&Person{Name: "Angad", SSN: "125", Policy: "GHI"},
 	}
 
+	begin := time.Now()
+
 	// Use the quirk client to insert multiple nodes at a time.
 	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
 		SetMultiStruct: people})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
+
+	log.Printf("Time for insertion [%v]\n", time.Since(begin))
 
 	// Finally print out the successful UIDs.
 	// The key is typically going to be either your
