@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/damienfamed75/yalp"
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // Client is used to store enough data and help manage

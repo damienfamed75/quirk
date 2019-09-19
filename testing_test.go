@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dgraph-io/dgo/protos/api"
-	"github.com/dgraph-io/dgo/y"
+	"github.com/dgraph-io/dgo/v2/protos/api"
+	"github.com/dgraph-io/dgo/v2/y"
 	. "github.com/franela/goblin"
 )
 
@@ -73,9 +73,7 @@ func TestTestDgraphClient(t *testing.T) {
 				Equal(error(nil))
 		})
 		g.It("should return response when Query is called", func() {
-			r, err := dg.Query(context.Background(), &api.Request{})
-			g.Assert(r).
-				Equal(&api.Response{})
+			_, err := dg.Query(context.Background(), &api.Request{})
 
 			g.Assert(err).
 				Equal(error(nil))
@@ -104,20 +102,24 @@ func TestTestDgraphClient(t *testing.T) {
 			g.Assert(err).
 				Equal(error(nil))
 		})
+		// Updated api.Assigned to api.Response as part of dgo major version change.
+		// See Issue #17 for more info.
 		g.It("should return assigned with a uid when Mutate is called", func() {
 			dg.shouldAbort = false
 			r, err := dg.Mutate(context.Background(), &api.Mutation{})
 			g.Assert(r).
-				Equal(&api.Assigned{Uids: map[string]string{"damienstamates": "0x1"}})
+				Equal(&api.Response{Uids: map[string]string{"damienstamates": "0x1"}})
 
 			g.Assert(err).
 				Equal(error(nil))
 		})
+		// Updated api.Assigned to api.Response as part of dgo major version change.
+		// See Issue #17 for more info.
 		g.It("should return assigned with a uid when Mutate is called", func() {
 			dg.shouldAbort = true
 			r, err := dg.Mutate(context.Background(), &api.Mutation{})
 			g.Assert(r).
-				Equal(&api.Assigned{})
+				Equal(&api.Response{})
 
 			g.Assert(err).
 				Equal(y.ErrAborted)

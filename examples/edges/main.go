@@ -5,10 +5,10 @@ import (
 	"flag"
 	"log"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +20,7 @@ var drop bool
 // The second parameter (which always is "unique") specifies if this
 // field should be unique throughout the graph.
 type Person struct {
+	Type   string `quirk:"dgraph.type"`
 	Name   string `quirk:"name"`
 	SSN    string `quirk:"ssn,unique"`
 	Policy string `quirk:"policy,unique"`
@@ -52,6 +53,7 @@ func main() {
 		name: string @index(hash) .
 		ssn: string @index(hash) @upsert .
 		policy: string @index(hash) @upsert .
+		friendsWith: [uid] .
 	`})
 	if err != nil {
 		log.Fatalf("Alteration error with setting schema [%v]\n", err)
@@ -77,7 +79,7 @@ func main() {
 			Duples: []quirk.Duple{
 				{Predicate: "name", Object: "Damien"},
 				{Predicate: "ssn", Object: "127"},
-				{Predicate: "policy", Object: "LKJ"},
+				{Predicate: "policy", Object: "LKJ", IsUnique: true},
 				{Predicate: "friendsWith", Object: uidMap["John"]},
 			},
 		},

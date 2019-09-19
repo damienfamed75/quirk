@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // Exported structures for the Client to use.
