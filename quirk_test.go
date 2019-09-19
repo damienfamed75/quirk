@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
