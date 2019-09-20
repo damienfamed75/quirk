@@ -7,8 +7,8 @@ import (
 	"github.com/damienfamed75/yalp"
 
 	"github.com/cheggaaa/pb/v3"
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/y"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/y"
 )
 
 // mutateMulti is used for all kinds of mutating any multiple type.

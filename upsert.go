@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *upsertResponse {

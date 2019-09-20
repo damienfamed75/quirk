@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 	. "github.com/franela/goblin"
 )
 

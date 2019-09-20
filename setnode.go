@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
 // setNode will build a mutation RDF with the builder and will then
@@ -29,12 +29,14 @@ func setNode(ctx context.Context, txn *dgo.Txn, b builder,
 	}
 
 	// Use our transaction to execute a mutation to insert or update our node.
-	assigned, err := txn.Mutate(ctx, &api.Mutation{SetNquads: []byte(b.String())})
+	// Renamed assigned to response to match dgo major version change.
+	// See Issue #17 for more info.
+	response, err := txn.Mutate(ctx, &api.Mutation{SetNquads: []byte(b.String())})
 	if err != nil {
 		return nil, err
 	}
 
 	// return the full map of UIDs back.
 	// Note: The key being the node's identifier.
-	return assigned.GetUids(), nil
+	return response.GetUids(), nil
 }
