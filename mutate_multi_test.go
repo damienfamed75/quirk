@@ -37,7 +37,7 @@ func TestLaunchWorkers(t *testing.T) {
 		)
 
 		g.It("should not error", func() {
-			g.Assert(launchWorkers(0, &sync.WaitGroup{}, &pb.ProgressBar{}, done, quit)).
+			g.Assert(launchWorkers(0, &pb.ProgressBar{}, done, quit)).
 				Equal(nil)
 		})
 	})
@@ -48,7 +48,6 @@ func TestMutationWorker(t *testing.T) {
 
 	g.Describe("mutation worker", func() {
 		var (
-			wg     sync.WaitGroup
 			m      sync.Mutex
 			mSS    = NewClient(WithPredicateKey("username")).mutateSingleStruct
 			ctx    = context.Background()
@@ -63,10 +62,11 @@ func TestMutationWorker(t *testing.T) {
 			read := make(chan interface{})
 			quit := make(chan bool)
 
-			wg.Add(1)
 			api.shouldAbort = false
 			// oof that's a lot of parameters...
-			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, &pb.ProgressBar{}, uidMap, read, quit, done)
+			// Hello past self, don't worry I got your back covered.
+			pkg := &workerPackage{dg, &m, mSS, logger, &pb.ProgressBar{}}
+			go mutationWorker(ctx, pkg, uidMap, read, quit, done)
 
 			// So then the logging if statement passes.
 			time.Sleep(200 * time.Millisecond)
@@ -77,18 +77,18 @@ func TestMutationWorker(t *testing.T) {
 			read <- &testPersonCorrect
 
 			close(read)
-
-			wg.Wait()
 		})
 
 		g.It("should not error when old", func() {
 			read := make(chan interface{})
 			quit := make(chan bool)
 
-			wg.Add(1)
 			api.shouldAbort = true
+
 			// oof that's a lot of parameters...
-			go mutationWorker(ctx, dg, &wg, &m, mSS, logger, &pb.ProgressBar{}, uidMap, read, quit, done)
+			// Hello past self, don't worry I got your back covered.
+			pkg := &workerPackage{dg, &m, mSS, logger, &pb.ProgressBar{}}
+			go mutationWorker(ctx, pkg, uidMap, read, quit, done)
 
 			read <- &testPersonCorrect
 
@@ -101,8 +101,6 @@ func TestMutationWorker(t *testing.T) {
 			err := <-done
 
 			g.Assert(err).Equal(nil)
-
-			wg.Wait()
 		})
 	})
 }
