@@ -1,6 +1,6 @@
 name: Sonar
 on: [push]
-job:
+jobs:
   sonarCloudTrigger:
     name: SonarCloud Trigger
     runs-on: ubuntu-latest
