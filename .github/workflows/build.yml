@@ -54,6 +54,17 @@ jobs:
     - name: Build
       run: go build -v .
 
+  sonarCloudTrigger:
+    name: SonarCloud Trigger
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-actions@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   notify:
     name: Notification
     needs: [build, test]
