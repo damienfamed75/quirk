@@ -32,7 +32,6 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 	if uid == "" {
 		new = true
 		// Insert new node.
-		// TODO remove string concatenation.
 		uidMap, err := setNode(ctx, txn, &builder, "_:"+identifier, dat)
 		if err != nil {
 			return &upsertResponse{
@@ -49,7 +48,6 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 		}
 	} else {
 		// Update the found node.
-		// TODO remove string concatenation.
 		_, err = setNode(ctx, txn, &builder, "<"+uid+">", dat)
 		if err != nil {
 			return &upsertResponse{
