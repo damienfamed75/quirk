@@ -79,7 +79,7 @@ func main() {
 	// you may set that when creating the client and using
 	// quirk.WithPredicateKey(predicateName string)
 	for k, v := range uidMap {
-		log.Printf("UIDMap: [%s] [%s]\n", k, v)
+		log.Printf("UIDMap: [%v] [%v]\n", k, v)
 	}
 
 	// t := dg.NewReadOnlyTxn()
