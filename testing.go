@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
-	"github.com/dgraph-io/dgo/v2/y"
 	"google.golang.org/grpc"
 )
 
@@ -75,7 +75,7 @@ func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOpti
 // See Issue #17 for more info.
 func (d *testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Response, error) {
 	if d.shouldAbort {
-		return &api.Response{}, y.ErrAborted
+		return &api.Response{}, dgo.ErrAborted
 	}
 	return &api.Response{Uids: map[string]string{"damienstamates": "0x1"}}, nil
 }

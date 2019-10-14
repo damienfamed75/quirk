@@ -6,7 +6,6 @@ import (
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/dgraph-io/dgo/v2"
-	"github.com/dgraph-io/dgo/v2/y"
 )
 
 // mutateMulti is used for all kinds of mutating any multiple type.
@@ -103,7 +102,7 @@ ReadLoop:
 			case nil:
 				// If the node was successful then continue to next node.
 				break Forever
-			case y.ErrAborted:
+			case dgo.ErrAborted:
 				// If the transaction was aborted then retry.
 			default:
 				err = mutErr

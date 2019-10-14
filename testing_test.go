@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
-	"github.com/dgraph-io/dgo/v2/y"
 	. "github.com/franela/goblin"
 )
 
@@ -122,7 +122,7 @@ func TestTestDgraphClient(t *testing.T) {
 				Equal(&api.Response{})
 
 			g.Assert(err).
-				Equal(y.ErrAborted)
+				Equal(dgo.ErrAborted)
 		})
 	})
 }
