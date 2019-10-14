@@ -5,6 +5,8 @@ import (
 	"io"
 	"sync"
 
+	"github.com/cheggaaa/pb/v3"
+	"github.com/damienfamed75/yalp"
 	"github.com/dgraph-io/dgo/v2"
 )
 
@@ -60,6 +62,16 @@ type (
 		err        error
 		identifier string
 		uid        string
+	}
+
+	// workerPackage is used for some common items that a worker needs
+	// that do not include the channels or essential UID map.
+	workerPackage struct {
+		dg                 *dgo.Dgraph
+		m                  *sync.Mutex
+		mutateSingleStruct mutateSingle
+		logger             yalp.Logger
+		bar                *pb.ProgressBar
 	}
 )
 

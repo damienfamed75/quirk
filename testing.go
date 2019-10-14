@@ -41,7 +41,10 @@ func (t *testBuilder) String() string {
 	return t.stringOutput
 }
 
-func (*testBuilder) Reset() {}
+// Reset is empty because testBuilder doesn't hold any information in it in the first place.
+func (*testBuilder) Reset() {
+	// This function is just for testing.
+}
 
 type testDgraphClient struct {
 	queryUseCount int

@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/damienfamed75/yalp"
-
 	"github.com/cheggaaa/pb/v3"
 	"github.com/dgraph-io/dgo/v2"
 )
@@ -15,7 +13,7 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	dat []interface{}, uidMap map[string]UID, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
-		wg     sync.WaitGroup
+		// wg     sync.WaitGroup
 		m      sync.Mutex
 		limit  = c.maxWorkerCount
 		datLen = len(dat)
@@ -33,11 +31,23 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	bar := pb.ProgressBarTemplate(c.template).Start(datLen)
 	bar.SetWidth(bar.Width()/2 + bar.Width()/4)
 
+	// pkg is the more non-focused items that when reading through as a new
+	// user, you don't need to focus on as much as some others. For example
+	// the user would want to see the path of the UID map and finding it
+	// will be easier with the lesser amount of parameters.
+	pkg := &workerPackage{
+		dg:                 dg,
+		m:                  &m,
+		mutateSingleStruct: mutateFunc,
+		logger:             c.logger,
+		bar:                bar,
+	}
+
 	// Launch workers.
 	for i := 0; i < limit; i++ {
-		wg.Add(1)
-		go mutationWorker(ctx, dg, &wg, &m, mutateFunc, c.logger, bar,
-			uidMap, read, quit, done)
+		// go mutationWorker(ctx, dg, &m, mutateFunc, c.logger, bar,
+		// 	uidMap, read, quit, done)
+		go mutationWorker(ctx, pkg, uidMap, read, quit, done)
 	}
 
 	// Send data to workers via channel.
@@ -47,10 +57,10 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 
 	close(read)
 
-	return launchWorkers(limit, &wg, bar, done, quit)
+	return launchWorkers(limit, bar, done, quit)
 }
 
-func launchWorkers(limit int, wg *sync.WaitGroup, bar *pb.ProgressBar,
+func launchWorkers(limit int, bar *pb.ProgressBar,
 	done chan error, quit chan bool) error {
 
 	var err error
@@ -68,17 +78,14 @@ func launchWorkers(limit int, wg *sync.WaitGroup, bar *pb.ProgressBar,
 	}
 
 	// Wait for all the workers to finish.
-	wg.Wait()
 	bar.Finish()
 
 	return err
 }
 
-func mutationWorker(ctx context.Context, dg *dgo.Dgraph, wg *sync.WaitGroup,
-	m *sync.Mutex, mutateSingleStruct mutateSingle, logger yalp.Logger, bar *pb.ProgressBar,
+func mutationWorker(ctx context.Context, pkg *workerPackage,
 	uidMap map[string]UID, read chan interface{}, quit chan bool, done chan error) {
 	// Defer that the waitgroup is finished.
-	defer wg.Done()
 	var err error
 
 	// For each signal received in read channel.
@@ -89,7 +96,7 @@ ReadLoop:
 	Forever:
 		for {
 			// MutateSingleStruct with received struct.
-			_, mutErr := mutateSingleStruct(ctx, dg, data, uidMap, m)
+			_, mutErr := pkg.mutateSingleStruct(ctx, pkg.dg, data, uidMap, pkg.m)
 
 			switch mutErr {
 			case nil:
@@ -105,7 +112,7 @@ ReadLoop:
 
 		// Increment the progress bar once the node is either successfully added
 		// or successfully updated.
-		bar.Increment()
+		pkg.bar.Increment()
 	}
 
 	// Mark done.
