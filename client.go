@@ -44,7 +44,7 @@ func NewClient(confs ...ClientConfiguration) *Client {
 // InsertMultiDynamicNode takes in a variadic number of interfaces as data.
 // This function was added, because converting everything to []interface{} in
 // someone's program proved to be inconvenient.
-func (c *Client) InsertMultiDynamicNode(ctx context.Context, dg DgraphClient, dat ...interface{}) (map[string]UID, error) {
+func (c *Client) InsertMultiDynamicNode(ctx context.Context, dg *dgo.Dgraph, dat ...interface{}) (map[string]UID, error) {
 	uidMap := make(map[string]UID)
 	err := c.mutateMulti(ctx, dg, dat, uidMap, c.mutateSingleStruct)
 
