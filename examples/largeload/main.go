@@ -9,11 +9,12 @@ import (
 	"log"
 	"os"
 	"text/tabwriter"
+	"time"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
 )
 
@@ -88,6 +89,8 @@ func main() {
 		people = append(people, &Person{Name: line[0], Age: line[1]})
 	}
 
+	begin := time.Now()
+
 	// Use the quirk client to insert multiple nodes at a time
 	// all while making sure that any upsert predicates are failed
 	// on transaction and returned promptly via the error.
@@ -110,4 +113,6 @@ func main() {
 		}
 	}
 	w.Flush()
+
+	fmt.Printf("Inserted nodes in [%v]\n", time.Since(begin))
 }

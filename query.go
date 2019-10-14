@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // queryUID builds a query, executes it to find any unique marked predicates.
@@ -49,7 +49,7 @@ func findDecodedUID(decode queryDecode) (string, error) {
 
 // executeQuery calls to create a Query based on the unique predicates sent in
 // and then executes it using the given transaction.
-func executeQuery(ctx context.Context, txn dgraphTxn, b builder,
+func executeQuery(ctx context.Context, txn *dgo.Txn, b builder,
 	dat *DupleNode, decode *queryDecode) error {
 	// Write a query that finds the marked unique predicates to the builder.
 	if err := createQuery(b, dat); err != nil {

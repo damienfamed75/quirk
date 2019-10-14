@@ -4,9 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/dgraph-io/dgo/protos/api"
-	"github.com/dgraph-io/dgo/y"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
+)
+
+var (
+	// Ensure testDgraphClient fits the api interface.
+	// This is for any direct compilation errors to make the pipeline fail faster.
+	// Very optimistic of me :)
+	_ api.DgraphClient = &testDgraphClient{}
 )
 
 // testBuilder is used to mock out a strings.Builder
@@ -53,14 +60,21 @@ func (d *testDgraphClient) Query(context.Context, *api.Request, ...grpc.CallOpti
 	if d.queryUseCount == d.failQueryOn {
 		return &api.Response{}, errors.New("QUERY_ERROR")
 	}
-	return &api.Response{Json: d.queryResponse}, nil
+	// Changed Response to return a UID Map like the Mutate function.
+	// This is because of the latest major change to dgo and how transactions
+	// interact with the api client when mutating nodes.
+	// See Issue #17 for more info.
+	return &api.Response{Json: d.queryResponse,
+		Uids: map[string]string{"damienstamates": "0x1"}}, nil
 }
 
-func (d *testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Assigned, error) {
+// api.Response isn't api.Assigned because of major version changes to dgo
+// See Issue #17 for more info.
+func (d *testDgraphClient) Mutate(context.Context, *api.Mutation, ...grpc.CallOption) (*api.Response, error) {
 	if d.shouldAbort {
-		return &api.Assigned{}, y.ErrAborted
+		return &api.Response{}, dgo.ErrAborted
 	}
-	return &api.Assigned{Uids: map[string]string{"damienstamates": "0x1"}}, nil
+	return &api.Response{Uids: map[string]string{"damienstamates": "0x1"}}, nil
 }
 
 func (*testDgraphClient) Alter(context.Context, *api.Operation, ...grpc.CallOption) (*api.Payload, error) {
@@ -102,10 +116,10 @@ var (
 
 	testPredValCorrect = &DupleNode{
 		Duples: []Duple{
-			Duple{Predicate: "username", Object: testPersonCorrect.Username, IsUnique: true},
-			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
-			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
-			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+			{Predicate: "username", Object: testPersonCorrect.Username, IsUnique: true},
+			{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
 		},
 	}
 
@@ -123,10 +137,10 @@ var (
 
 	testPredValInvalid = &DupleNode{
 		Duples: []Duple{
-			Duple{Predicate: "", Object: testPersonCorrect.Username, IsUnique: false},
-			Duple{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
-			Duple{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
-			Duple{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
+			{Predicate: "", Object: testPersonCorrect.Username, IsUnique: false},
+			{Predicate: "website", Object: testPersonCorrect.Website, IsUnique: false},
+			{Predicate: "acctage", Object: testPersonCorrect.AccountAge, IsUnique: false},
+			{Predicate: "email", Object: testPersonCorrect.Email, IsUnique: true},
 		},
 	}
 )

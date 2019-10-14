@@ -1,6 +1,6 @@
 package quirk
 
-import "github.com/damienfamed75/quirk/logging"
+import "github.com/damienfamed75/yalp"
 
 // ClientConfiguration is used to pass in options
 // to change the client and customize it to the user's liking.
@@ -8,7 +8,7 @@ type ClientConfiguration func(*Client)
 
 // WithLogger sets the logger used by the quirk client.
 // By default this is quirk.NewNilLogger.
-func WithLogger(l logging.Logger) ClientConfiguration {
+func WithLogger(l yalp.Logger) ClientConfiguration {
 	return func(c *Client) {
 		c.logger = l
 	}
@@ -28,5 +28,13 @@ func WithPredicateKey(predicateName string) ClientConfiguration {
 func WithTemplate(tmpl string) ClientConfiguration {
 	return func(c *Client) {
 		c.template = tmpl
+	}
+}
+
+// WithMaxWorkerCount will set the maximum workers that will be spun when
+// using a Multi operation.
+func WithMaxWorkerCount(count int) ClientConfiguration {
+	return func(c *Client) {
+		c.maxWorkerCount = count
 	}
 }

@@ -4,24 +4,27 @@ import (
 	"context"
 	"sync"
 
-	"github.com/damienfamed75/quirk/logging"
+	"github.com/damienfamed75/yalp"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // Client is used to store enough data and help manage
 // the logger when inserting nodes into Dgraph using a proper
 // upsert procedure.
 type Client struct {
-	predicateKey string
-	logger       logging.Logger
-	template     string
+	predicateKey   string
+	logger         yalp.Logger
+	template       string
+	maxWorkerCount int
 }
 
 // setupClient returns the default states of a quirk client.
 func setupClient() *Client {
 	return &Client{
-		logger:       NewNilLogger(),
-		predicateKey: "name",
-		template:     templateDefault,
+		logger:         NewNilLogger(),
+		predicateKey:   predicateKeyDefault,
+		template:       templateDefault,
+		maxWorkerCount: maxWorkers,
 	}
 }
 
@@ -52,7 +55,7 @@ func (c *Client) InsertMultiDynamicNode(ctx context.Context, dg DgraphClient, da
 // will be added or a single node. Then the function will return a
 // map of the returned successful UIDs with the key being the predicate
 // key value. By default this will be the "name" predicate value.
-func (c *Client) InsertNode(ctx context.Context, dg DgraphClient, o *Operation) (map[string]UID, error) {
+func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Operation) (map[string]UID, error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
 		return nil, &Error{
 			Msg:      msgTooManyMutationFields,

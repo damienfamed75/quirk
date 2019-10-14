@@ -2,9 +2,10 @@ package quirk
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *upsertResponse {
@@ -30,15 +31,26 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 	var new bool
 	if uid == "" {
 		new = true
-		uid, err = setNewNode(ctx, txn, &builder, identifier, dat)
+		// Insert new node.
+		// TODO remove string concatenation.
+		uidMap, err := setNode(ctx, txn, &builder, "_:"+identifier, dat)
 		if err != nil {
 			return &upsertResponse{
 				err: err,
 				new: new,
 			}
 		}
+		// If the UID could not be found in the map.
+		if uid = uidMap[identifier]; uid == "" {
+			return &upsertResponse{
+				err: errors.New(msgMutationHadNoUID),
+				new: new,
+			}
+		}
 	} else {
-		err = updateNode(ctx, txn, &builder, identifier, dat, uid)
+		// Update the found node.
+		// TODO remove string concatenation.
+		_, err = setNode(ctx, txn, &builder, "<"+uid+">", dat)
 		if err != nil {
 			return &upsertResponse{
 				err: err,

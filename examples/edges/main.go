@@ -5,10 +5,10 @@ import (
 	"flag"
 	"log"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +20,7 @@ var drop bool
 // The second parameter (which always is "unique") specifies if this
 // field should be unique throughout the graph.
 type Person struct {
+	Type   string `quirk:"dgraph.type"`
 	Name   string `quirk:"name"`
 	SSN    string `quirk:"ssn,unique"`
 	Policy string `quirk:"policy,unique"`
@@ -52,6 +53,7 @@ func main() {
 		name: string @index(hash) .
 		ssn: string @index(hash) @upsert .
 		policy: string @index(hash) @upsert .
+		friendsWith: [uid] .
 	`})
 	if err != nil {
 		log.Fatalf("Alteration error with setting schema [%v]\n", err)
@@ -75,13 +77,16 @@ func main() {
 		SetSingleDupleNode: &quirk.DupleNode{
 			Identifier: "Damien",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "Damien"},
-				quirk.Duple{Predicate: "ssn", Object: "127"},
-				quirk.Duple{Predicate: "policy", Object: "LKJ"},
-				quirk.Duple{Predicate: "friendsWith", Object: uidMap["John"]},
+				{Predicate: "name", Object: "Damien"},
+				{Predicate: "ssn", Object: "127"},
+				{Predicate: "policy", Object: "LKJ", IsUnique: true},
+				{Predicate: "friendsWith", Object: uidMap["John"]},
 			},
 		},
 	})
+	if err != nil {
+		log.Fatalf("Error when inserting node [%v]\n", err)
+	}
 
 	// Finally print out the successful UIDs.
 	// The key is typically going to be either your
@@ -91,6 +96,6 @@ func main() {
 	// you may set that when creating the client and using
 	// quirk.WithPredicateKey(predicateName string)
 	for k, v := range uidMap {
-		log.Printf("UIDMap: [%s] [%s]\n", k, v)
+		log.Printf("UIDMap: [%s] [%v]\n", k, v)
 	}
 }

@@ -5,8 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // Exported structures for the Client to use.
@@ -42,12 +41,6 @@ type (
 		dataType string
 	}
 
-	// DgraphClient is used to mock out the client when testing.
-	DgraphClient interface {
-		Alter(context.Context, *api.Operation) error
-		NewTxn() *dgo.Txn
-	}
-
 	// UID is used to identify the ID's given to the user and retrieved back to
 	// be put as the object of a predicate.
 	// This way quirk can handle the UID how they're supposed to be handled.
@@ -72,13 +65,6 @@ type (
 
 // interfaces used within for testing.
 type (
-	dgraphTxn interface {
-		Query(context.Context, string) (*api.Response, error)
-		Mutate(context.Context, *api.Mutation) (*api.Assigned, error)
-		Commit(context.Context) error
-		Discard(context.Context) error
-	}
-
 	builder interface {
 		io.Writer
 		String() string
@@ -97,7 +83,7 @@ type (
 	queryDecode map[string][]struct{ UID *string }
 
 	// mutateSingle is used to pass into a worker function to call.
-	mutateSingle func(context.Context, DgraphClient, interface{}, map[string]UID, *sync.Mutex) (bool, error)
+	mutateSingle func(context.Context, *dgo.Dgraph, interface{}, map[string]UID, *sync.Mutex) (bool, error)
 )
 
 // DupleNode ---
@@ -139,6 +125,8 @@ func (d *DupleNode) SetOrAdd(duple Duple) *DupleNode {
 
 // AddDuples appends new duples given in the function.
 // Then returns the reference to the DupleNode.
+// This function doesn't support updating previously added Duples though.
+// This should only be used when trying to optimize appending new duples.
 func (d *DupleNode) AddDuples(duple ...Duple) *DupleNode {
 	d.Duples = append(d.Duples, duple...)
 	return d
