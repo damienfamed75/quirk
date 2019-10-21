@@ -62,56 +62,56 @@ func TestCheckType(t *testing.T) {
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsInt)
+				Equal(_xsInt)
 		})
 		g.It("Should be an int with int64", func() {
 			var a int64
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsInt)
+				Equal(_xsInt)
 		})
 		g.It("Should be an int with int32", func() {
 			var a int32
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsInt)
+				Equal(_xsInt)
 		})
 		g.It("Should be an int with int16", func() {
 			var a int16
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsInt)
+				Equal(_xsInt)
 		})
 		g.It("Should be an int with int8", func() {
 			var a int8
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsInt)
+				Equal(_xsInt)
 		})
 		g.It("Should be bool with bool", func() {
 			var a bool
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsBool)
+				Equal(_xsBool)
 		})
 		g.It("Should be float with float32", func() {
 			var a float32
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsFloat)
+				Equal(_xsFloat)
 		})
 		g.It("Should be float with float64", func() {
 			var a float64
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsFloat)
+				Equal(_xsFloat)
 		})
 		g.It("Should be empty with string", func() {
 			var a string
@@ -125,7 +125,7 @@ func TestCheckType(t *testing.T) {
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsString)
+				Equal(_xsString)
 		})
 	})
 }

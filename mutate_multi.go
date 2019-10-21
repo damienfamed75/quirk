@@ -23,7 +23,7 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	)
 
 	// If there is less data than the max worker count.
-	if len(dat) < maxWorkers {
+	if len(dat) < _maxWorkers {
 		limit = datLen
 	}
 

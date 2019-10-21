@@ -22,7 +22,7 @@ func TestTryUpsert(t *testing.T) {
 				queryResponse: testValidJSONOutput,
 			})
 			g.Assert(c.tryUpsert(ctx, dgraph.NewTxn(), testPredValCorrect)).
-				Equal(&upsertResponse{identifier: blankDefault, uid: "0x1"})
+				Equal(&upsertResponse{identifier: _blankDefault, uid: "0x1"})
 		})
 
 		g.It("Should error from mutation", func() {

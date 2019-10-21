@@ -2,6 +2,7 @@ package quirk
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -226,12 +227,14 @@ func TestInsertNode(t *testing.T) {
 			g.Assert(len(uids)).
 				Equal(0)
 
-			g.Assert(err).
-				Equal(&Error{
-					Msg:      msgTooManyMutationFields,
-					File:     "client.go",
-					Function: "quirk.Client.InsertNode",
-				})
+			// g.Assert(err).
+			// 	Equal(&Error{
+			// 		Msg:      msgTooManyMutationFields,
+			// 		File:     "client.go",
+			// 		Function: "quirk.Client.InsertNode",
+			// 	})
+
+			g.Assert(errors.Is(err, ErrTooManyOperationFields)).IsTrue()
 		})
 	})
 }

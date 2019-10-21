@@ -1,68 +1,27 @@
 package quirk
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	. "github.com/franela/goblin"
 )
 
-func TestError(t *testing.T) {
-	g := Goblin(t)
-
-	g.Describe("Error", func() {
-		g.It("with external error", func() {
-			e := &Error{ExtErr: errors.New("err")}
-			g.Assert(e.Error()).
-				Equal(":: msg[] external_err[err]")
-		})
-
-		g.It("without external error", func() {
-			e := &Error{}
-			g.Assert(e.Error()).
-				Equal(":: msg[]")
-		})
-	})
-}
-
-func TestQueryError(t *testing.T) {
+func TestNewQueryError(t *testing.T) {
 	g := Goblin(t)
 
 	g.Describe("Query error", func() {
-		g.It("with external error", func() {
-			e := &QueryError{ExtErr: errors.New("err")}
+		g.It("with non-verbose logging", func() {
+			e := NewQueryError(_emptyQuery, ErrNilUID)
 			g.Assert(e.Error()).
-				Equal(":query.go: Query[] external_err[err]")
+				Equal(fmt.Sprintf("query error:%s",
+					ErrNilUID.Error()))
 		})
-
-		g.It("with message", func() {
-			e := &QueryError{Msg: "msg"}
+		g.It("with verbose logging", func() {
+			e := NewQueryError(_emptyQuery, ErrNilUID)
 			g.Assert(e.Error()).
-				Equal(":query.go: Msg[msg]")
-		})
-
-		g.It("empty", func() {
-			e := &QueryError{}
-			g.Assert(e.Error()).
-				Equal(":query.go: Query[]")
-		})
-	})
-}
-
-func TestTransactionError(t *testing.T) {
-	g := Goblin(t)
-
-	g.Describe("Error", func() {
-		g.It("with external error", func() {
-			e := &TransactionError{ExtErr: errors.New("err")}
-			g.Assert(e.Error()).
-				Equal(":mutate_single.go: Msg[] RDF[] external_err[err]")
-		})
-
-		g.It("without external error", func() {
-			e := &TransactionError{}
-			g.Assert(e.Error()).
-				Equal(":mutate_single.go: Msg[] RDF[]")
+				Equal(fmt.Sprintf("query error:{%s}:%s",
+					_emptyQuery, ErrNilUID.Error()))
 		})
 	})
 }
