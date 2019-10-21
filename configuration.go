@@ -38,3 +38,12 @@ func WithMaxWorkerCount(count int) ClientConfiguration {
 		c.maxWorkerCount = count
 	}
 }
+
+// WithDebugMode sets the client to return verbose errors when possible.
+// For instance, when there is a query error then with debug mode on, the client
+// will return an error that contains the entire attempted query with the error.
+func WithDebugMode() ClientConfiguration {
+	return func(c *Client) {
+		c.verbose = true
+	}
+}

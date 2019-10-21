@@ -19,7 +19,7 @@ func queryUID(ctx context.Context, txn *dgo.Txn, b builder, dat *DupleNode) (str
 
 	// execute a query to find any UIDs that are existing for unique fields.
 	if err := executeQuery(ctx, txn, b, dat, &decode); err != nil {
-		return "", err
+		return "", fmt.Errorf("executing query: %w", err)
 	}
 
 	// find if the decoded query contains any UIDs.
@@ -32,13 +32,11 @@ func queryUID(ctx context.Context, txn *dgo.Txn, b builder, dat *DupleNode) (str
 func findDecodedUID(decode queryDecode) (string, error) {
 	for _, v := range decode {
 		if len(v) > 1 { // if there are too many responses.
-			return "", &QueryError{
-				Msg: msgTooManyResponses, Function: "findDecodedUID"}
+			return "", fmt.Errorf("findDecodedUID: %w", ErrTooManyResponses)
 		}
 		if len(v) == 1 {
 			if v[0].UID == nil { // if the *string is nil.
-				return "", &QueryError{
-					Msg: msgNilUID, Function: "findDecodedUID"}
+				return "", fmt.Errorf("findDecodedUID: %w", ErrNilUID)
 			}
 			return *v[0].UID, nil
 		}
@@ -53,30 +51,23 @@ func executeQuery(ctx context.Context, txn *dgo.Txn, b builder,
 	dat *DupleNode, decode *queryDecode) error {
 	// Write a query that finds the marked unique predicates to the builder.
 	if err := createQuery(b, dat); err != nil {
-		return err
+		return fmt.Errorf("creating query: %w", err)
 	}
 
 	// If the query is empty then return nil right away.
-	if b.String() == emptyQuery {
+	if b.String() == _emptyQuery {
 		return nil
 	}
 
 	// Execute the query with the given transaction.
 	resp, err := txn.Query(ctx, b.String())
 	if err != nil {
-		return &QueryError{
-			Function: "executeQuery",
-			Query:    b.String(),
-			ExtErr:   err,
-		}
+		return NewQueryError(b.String(), err)
 	}
 
 	// Unmarshal the response into the given decode object.
 	if err = json.Unmarshal(resp.GetJson(), decode); err != nil {
-		return &QueryError{
-			Function: "executeQuery",
-			ExtErr:   err,
-		}
+		return fmt.Errorf("unmarshal response: %w", err)
 	}
 
 	return nil
@@ -86,24 +77,20 @@ func executeQuery(ctx context.Context, txn *dgo.Txn, b builder,
 // to the given io.Writer.
 func createQuery(b io.Writer, dat *DupleNode) error {
 	if _, err := b.Write([]byte{'{'}); err != nil {
-		return err
+		return fmt.Errorf("writing begin rdf: %w", err)
 	}
 
 	// Loop through and add a new function per unique predicate.
 	for _, d := range dat.Unique() {
-		_, err := fmt.Fprintf(b, queryfunc, "find"+d.Predicate, d.Predicate, d.Object)
+		_, err := fmt.Fprintf(b, _queryfunc, "find"+d.Predicate, d.Predicate, d.Object)
 		if err != nil { // returns quirk.Error for predicate and value context.
-			return &QueryError{
-				ExtErr:   err,
-				Msg:      fmt.Sprintf(msgBuilderWriting, d.Predicate, d.Object),
-				Function: "createQuery",
-			}
+			return fmt.Errorf("creating query: %w", err)
 		}
 	}
 
 	// End the query.
 	if _, err := b.Write([]byte{'}'}); err != nil {
-		return err
+		return fmt.Errorf("writing end rdf: %w", err)
 	}
 
 	return nil

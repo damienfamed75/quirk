@@ -36,7 +36,7 @@ func (c *Client) reflectMaps(d interface{}) *DupleNode {
 
 	// loop through elements of struct.
 	for i := 0; i < numFields; i++ {
-		tag, opt = parseTag(reflect.TypeOf(d).Elem().Field(i).Tag.Get(quirkTag))
+		tag, opt = parseTag(reflect.TypeOf(d).Elem().Field(i).Tag.Get(_quirkTag))
 		if tag == "" {
 			continue
 		}
@@ -46,7 +46,7 @@ func (c *Client) reflectMaps(d interface{}) *DupleNode {
 		duple.Duples = append(duple.Duples, Duple{
 			Predicate: tag, // first quirk tag.
 			Object:    elem.Field(i).Interface(),
-			IsUnique:  opt == tagUnique, // if the second option is "unique"
+			IsUnique:  opt == _tagUnique, // if the second option is "unique"
 			// dataType:  checkType(elem.Field(i).Interface()),
 		})
 
@@ -73,7 +73,7 @@ func (c *Client) dynamicMapToPredValPairs(d map[string]interface{}) *DupleNode {
 	for k, v := range d {
 
 		dType := checkType(v)
-		if dType == xsByte {
+		if dType == _xsByte {
 			val = string(v.([]byte))
 			dType = ""
 		} else {
@@ -128,23 +128,23 @@ func (c *Client) mapToPredValPairs(d map[string]string) *DupleNode {
 func checkType(val interface{}) string {
 	switch val.(type) {
 	case int64: // int64 gets handled as a normal int.
-		return xsInt
+		return _xsInt
 	case int32: // int32 gets handled as a normal int.
-		return xsInt
+		return _xsInt
 	case int16: // int16 gets handled as normal int.
-		return xsInt
+		return _xsInt
 	case int8: // int8 gets handled as normal int.
-		return xsInt
+		return _xsInt
 	case int:
-		return xsInt
+		return _xsInt
 	case bool:
-		return xsBool
+		return _xsBool
 	case float32: // float32 gets handled as a general float.
-		return xsFloat
+		return _xsFloat
 	case float64: // float64 gets handled as a general float.
-		return xsFloat
+		return _xsFloat
 	case []byte:
-		return xsString // Changed from xs:byte to xs:string for Dgraphv.1.1.0
+		return _xsString // Changed from xs:byte to xs:string for Dgraphv.1.1.0
 	}
 
 	return ""

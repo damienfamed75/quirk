@@ -2,6 +2,7 @@ package quirk
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -14,7 +15,7 @@ func (c *Client) mutate(ctx context.Context, dg *dgo.Dgraph,
 
 	res := c.tryUpsert(ctx, dg.NewTxn(), d)
 	if res.err != nil {
-		return res.new, res.err
+		return res.new, fmt.Errorf("mutate: %w", res.err)
 	}
 
 	m.Lock()
@@ -31,14 +32,24 @@ func (c *Client) mutateSingleStruct(ctx context.Context, dg *dgo.Dgraph,
 	// Use reflect to package the predicate and values in slices.
 	predVals := c.reflectMaps(d)
 
-	return c.mutate(ctx, dg, predVals, uidMap, m)
+	n, err := c.mutate(ctx, dg, predVals, uidMap, m)
+	if err != nil {
+		return n, fmt.Errorf("mutateSingleStruct: %w", err)
+	}
+
+	return n, nil
 }
 
 // mutateSingleDupleNode passed the DupleNode given to mutate to be upserted.
 func (c *Client) mutateSingleDupleNode(ctx context.Context, dg *dgo.Dgraph,
 	node interface{}, uidMap map[string]UID, m *sync.Mutex) (bool, error) {
 
-	return c.mutate(ctx, dg, node.(*DupleNode), uidMap, m)
+	n, err := c.mutate(ctx, dg, node.(*DupleNode), uidMap, m)
+	if err != nil {
+		return n, fmt.Errorf("mutateSingleDupleNode: %w", err)
+	}
+
+	return n, nil
 }
 
 // mutateStringMap loops through the given map to create a DupleNode struct.
@@ -48,7 +59,12 @@ func (c *Client) mutateStringMap(ctx context.Context, dg *dgo.Dgraph,
 	// Convert out map[string]string to usable predicate and value data.
 	predVals := c.mapToPredValPairs(d)
 
-	return c.mutate(ctx, dg, predVals, uidMap, m)
+	n, err := c.mutate(ctx, dg, predVals, uidMap, m)
+	if err != nil {
+		return n, fmt.Errorf("mutateStringMap: %w", err)
+	}
+
+	return n, nil
 }
 
 // mutateDynamicMap loops through the given map to create a DupleNode struct.
@@ -59,5 +75,10 @@ func (c *Client) mutateDynamicMap(ctx context.Context, dg *dgo.Dgraph,
 	// Convert out map[string]interface{} to usable predicate and value data.
 	predVals := c.dynamicMapToPredValPairs(d)
 
-	return c.mutate(ctx, dg, predVals, uidMap, m)
+	n, err := c.mutate(ctx, dg, predVals, uidMap, m)
+	if err != nil {
+		return n, fmt.Errorf("mutateDynamicMap: %w", err)
+	}
+
+	return n, nil
 }

@@ -2,6 +2,7 @@ package quirk
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/cheggaaa/pb/v3"
@@ -13,7 +14,6 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 	dat []interface{}, uidMap map[string]UID, mutateFunc mutateSingle) error {
 	// Create waitgroup and channels.
 	var (
-		// wg     sync.WaitGroup
 		m      sync.Mutex
 		limit  = c.maxWorkerCount
 		datLen = len(dat)
@@ -45,8 +45,6 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 
 	// Launch workers.
 	for i := 0; i < limit; i++ {
-		// go mutationWorker(ctx, dg, &m, mutateFunc, c.logger, bar,
-		// 	uidMap, read, quit, done)
 		go mutationWorker(ctx, pkg, uidMap, read, quit, done)
 	}
 
@@ -57,13 +55,19 @@ func (c *Client) mutateMulti(ctx context.Context, dg *dgo.Dgraph,
 
 	close(read)
 
-	return launchWorkers(limit, bar, done, quit)
+	if err := launchWorkers(limit, bar, done, quit); err != nil {
+		return fmt.Errorf("launching workers: %w", err)
+	}
+
+	return nil
 }
 
 func launchWorkers(limit int, bar *pb.ProgressBar,
 	done chan error, quit chan bool) error {
+	defer bar.Finish()
 
 	var err error
+
 	// Wait for workers to finish.
 	// receive results from channel.
 	for i := 0; i < limit; i++ {
@@ -74,13 +78,12 @@ func launchWorkers(limit int, bar *pb.ProgressBar,
 			// Close the quit channel to stop the rest of the workers.
 			close(quit)
 			i = limit
+
+			return fmt.Errorf("mutation worker: %w", err)
 		}
 	}
 
-	// Wait for all the workers to finish.
-	bar.Finish()
-
-	return err
+	return nil
 }
 
 func mutationWorker(ctx context.Context, pkg *workerPackage,
@@ -105,7 +108,7 @@ ReadLoop:
 			case dgo.ErrAborted:
 				// If the transaction was aborted then retry.
 			default:
-				err = mutErr
+				err = fmt.Errorf("worker mutation: %w", mutErr)
 				break ReadLoop
 			}
 		}

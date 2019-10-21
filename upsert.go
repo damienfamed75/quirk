@@ -2,7 +2,7 @@ package quirk
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -17,12 +17,15 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 	// Query to find if there are pre existing nodes with the unique predicates.
 	uid, err := queryUID(ctx, txn, &builder, dat)
 	if err != nil {
+		if qerr, ok := err.(*QueryError); ok {
+			return &upsertResponse{err: qerr.setVerbose(c.verbose)}
+		}
 		return &upsertResponse{err: err}
 	}
 
 	// Check if the given data contains the quirk client predicateKey. If not
 	// then it is defaulted to "data"
-	identifier := blankDefault
+	identifier := _blankDefault
 	if dat.Identifier != "" {
 		identifier = dat.Identifier
 	}
@@ -34,15 +37,22 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 		// Insert new node.
 		uidMap, err := setNode(ctx, txn, &builder, "_:"+identifier, dat)
 		if err != nil {
+			if merr, ok := err.(*MutationError); ok {
+				return &upsertResponse{
+					err: merr.setVerbose(c.verbose).setNew(new), new: new}
+			}
+			// Even though this function can't return any other types of errors
+			// if in the future I add a new error type, then this will help
+			// with that.
 			return &upsertResponse{
-				err: err,
+				err: fmt.Errorf("setNode (insert): %w", err),
 				new: new,
 			}
 		}
 		// If the UID could not be found in the map.
 		if uid = uidMap[identifier]; uid == "" {
 			return &upsertResponse{
-				err: errors.New(msgMutationHadNoUID),
+				err: ErrUIDNotFound,
 				new: new,
 			}
 		}
@@ -50,8 +60,15 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 		// Update the found node.
 		_, err = setNode(ctx, txn, &builder, "<"+uid+">", dat)
 		if err != nil {
+			if merr, ok := err.(*MutationError); ok {
+				return &upsertResponse{
+					err: merr.setVerbose(c.verbose).setNew(new), new: new}
+			}
+			// Even though this function can't return any other types of errors
+			// if in the future I add a new error type, then this will help
+			// with that.
 			return &upsertResponse{
-				err: err,
+				err: fmt.Errorf("setNode (update): %w", err),
 				new: new,
 			}
 		}

@@ -1,65 +1,42 @@
 package quirk
 
 import (
+	"errors"
 	"fmt"
 )
 
-// Error is a general error that isn't super specific. Just used for when
-// there needs to be more context relating to an error.
-type Error struct {
-	ExtErr   error
-	Msg      string
-	File     string
-	Function string
-}
+// Custom errors for Quirk.
+var (
+	ErrTooManyOperationFields = errors.New("too many fields filled in operation")
+	ErrTransactionFailure     = errors.New("transaction failure")
+	ErrTooManyResponses       = errors.New("too many responses from query for unique nodes")
+	ErrUIDNotFound            = errors.New("couldn't find uid in mutation response")
+	ErrNilUID                 = errors.New("*string was nil in response")
+)
 
-func (e *Error) Error() string {
-	if e.ExtErr != nil {
-		return fmt.Sprintf("%s:%s: msg[%s] external_err[%v]",
-			e.Function, e.File, e.Msg, e.ExtErr,
-		)
-	}
-
-	return fmt.Sprintf("%s:%s: msg[%s]",
-		e.Function, e.File, e.Msg,
-	)
-}
-
-// Unwrap is used to return any external errors.
-// This function was implemented for Go 1.13.
-func (e *Error) Unwrap() error {
-	if e.ExtErr != nil {
-		return e.ExtErr
-	}
-
-	return nil
-}
-
-// QueryError is used for functions in the query.go file.
+// QueryError is used for errors revolving around querying.
 type QueryError struct {
-	ExtErr   error
-	Msg      string
-	Function string
-	Query    string
+	ExtErr  error
+	Query   string
+	Verbose bool
 }
 
-func (e *QueryError) Error() (res string) {
-	switch {
-	case e.ExtErr != nil:
-		res = fmt.Sprintf("%s:query.go: Query[%s] external_err[%v]",
-			e.Function, e.Query, e.ExtErr,
-		)
-	case e.Msg != "":
-		res = fmt.Sprintf("%s:query.go: Msg[%s]",
-			e.Function, e.Msg,
-		)
-	default:
-		res = fmt.Sprintf("%s:query.go: Query[%s]",
-			e.Function, e.Query,
-		)
+// NewQueryError is built for Quirk to fill a custom error type with
+// the necessary data to debug an issue quickly, whether or not the
+// debug mode is on or off.
+func NewQueryError(query string, err error) error {
+	return &QueryError{
+		Query:  query,
+		ExtErr: err,
+	}
+}
+
+func (e *QueryError) Error() string {
+	if e.Verbose {
+		return fmt.Sprintf("query error:{%s}:%s", e.Query, e.ExtErr.Error())
 	}
 
-	return
+	return fmt.Sprintf("query error: %s", e.ExtErr.Error())
 }
 
 // Unwrap is used to return any external errors.
@@ -72,32 +49,64 @@ func (e *QueryError) Unwrap() error {
 	return nil
 }
 
-// TransactionError is for when a transaction fails during a mutation.
-type TransactionError struct {
-	ExtErr   error
-	Msg      string
-	Function string
-	RDF      string
+func (e *QueryError) setVerbose(val bool) *QueryError {
+	e.Verbose = val
+	return e
 }
 
-func (e *TransactionError) Error() string {
-	if e.ExtErr != nil {
-		return fmt.Sprintf("%s:mutate_single.go: Msg[%s] RDF[%s] external_err[%v]",
-			e.Function, e.Msg, e.RDF, e.ExtErr,
-		)
+// MutationError is used when returning a mutation/insertion/update error.
+type MutationError struct {
+	ExtErr     error
+	Identifier string
+	RDF        string
+	Verbose    bool
+	New        bool
+}
+
+// NewMutationError is built for Quirk to fill a custom error type with
+// the necessary data to debug an issue quickly, whether or not the
+// debug mode is on or off.
+func NewMutationError(rdf, identifier string, err error) error {
+	return &MutationError{
+		RDF:        rdf,
+		Identifier: identifier,
+		ExtErr:     err,
+	}
+}
+
+func (e *MutationError) Error() string {
+	if e.Verbose {
+		return fmt.Sprintf("mutation error (%s:%s):{%s}:%s",
+			e.Identifier, e.newVal(), e.RDF, e.ExtErr)
 	}
 
-	return fmt.Sprintf("%s:mutate_single.go: Msg[%s] RDF[%s]",
-		e.Function, e.Msg, e.RDF,
-	)
+	return fmt.Sprintf("mutation error (%s:%s): %s",
+		e.Identifier, e.newVal(), e.ExtErr)
 }
 
 // Unwrap is used to return any external errors.
 // This function was implemented for Go 1.13.
-func (e *TransactionError) Unwrap() error {
+func (e *MutationError) Unwrap() error {
 	if e.ExtErr != nil {
 		return e.ExtErr
 	}
 
 	return nil
+}
+
+func (e *MutationError) newVal() string {
+	if e.New {
+		return "insert"
+	}
+	return "update"
+}
+
+func (e *MutationError) setVerbose(val bool) *MutationError {
+	e.Verbose = val
+	return e
+}
+
+func (e *MutationError) setNew(val bool) *MutationError {
+	e.New = val
+	return e
 }

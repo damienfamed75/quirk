@@ -18,13 +18,13 @@ func setNode(ctx context.Context, txn *dgo.Txn, b builder,
 		d.dataType = checkType(d.Object)
 		if uid, ok := d.Object.(UID); ok {
 			// Use the UID format instead of the regular object.
-			fmt.Fprintf(b, rdfReference+d.dataType+rdfEnd, identifier, d.Predicate, uid.Value())
+			fmt.Fprintf(b, _rdfReference+d.dataType+_rdfEnd, identifier, d.Predicate, uid.Value())
 		} else if slice, ok := d.Object.([]byte); ok {
 			// Write a string casted byte slice into the builder.
-			fmt.Fprintf(b, rdfBase+d.dataType+rdfEnd, identifier, d.Predicate, string(slice))
+			fmt.Fprintf(b, _rdfBase+d.dataType+_rdfEnd, identifier, d.Predicate, string(slice))
 		} else {
 			// Write the triplet into the builder.
-			fmt.Fprintf(b, rdfBase+d.dataType+rdfEnd, identifier, d.Predicate, d.Object)
+			fmt.Fprintf(b, _rdfBase+d.dataType+_rdfEnd, identifier, d.Predicate, d.Object)
 		}
 	}
 
@@ -33,7 +33,7 @@ func setNode(ctx context.Context, txn *dgo.Txn, b builder,
 	// See Issue #17 for more info.
 	response, err := txn.Mutate(ctx, &api.Mutation{SetNquads: []byte(b.String())})
 	if err != nil {
-		return nil, err
+		return nil, NewMutationError(b.String(), identifier, err)
 	}
 
 	// return the full map of UIDs back.

@@ -2,6 +2,7 @@ package quirk
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/damienfamed75/yalp"
@@ -16,15 +17,16 @@ type Client struct {
 	logger         yalp.Logger
 	template       string
 	maxWorkerCount int
+	verbose        bool
 }
 
 // setupClient returns the default states of a quirk client.
 func setupClient() *Client {
 	return &Client{
 		logger:         NewNilLogger(),
-		predicateKey:   predicateKeyDefault,
-		template:       templateDefault,
-		maxWorkerCount: maxWorkers,
+		predicateKey:   _predicateKeyDefault,
+		template:       _templateDefault,
+		maxWorkerCount: _maxWorkers,
 	}
 }
 
@@ -57,11 +59,7 @@ func (c *Client) InsertMultiDynamicNode(ctx context.Context, dg *dgo.Dgraph, dat
 // key value. By default this will be the "name" predicate value.
 func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Operation) (map[string]UID, error) {
 	if o.SetMultiStruct != nil && o.SetSingleStruct != nil {
-		return nil, &Error{
-			Msg:      msgTooManyMutationFields,
-			File:     "client.go",
-			Function: "quirk.Client.InsertNode",
-		}
+		return nil, fmt.Errorf("insert node: %w", ErrTooManyOperationFields)
 	}
 
 	var err error
@@ -88,7 +86,11 @@ func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Operation) (
 		err = c.mutateMulti(ctx, dg, tmp, uidMap, c.mutateSingleDupleNode)
 	}
 
-	return uidMap, err
+	if err != nil {
+		fmt.Errorf("insert node(s): %w", err)
+	}
+
+	return uidMap, nil
 }
 
 // GetPredicateKey returns the name of the field(predicate) that will

@@ -1,40 +1,29 @@
 package quirk
 
-// error messages.
-const (
-	msgTooManyMutationFields = "Too many fields filled in QuirkMutation"
-	msgTransactionFailure    = "Transaction failure"
-	msgInvalidSchemaRead     = "Invalid schema caused reading error"
-	msgTooManyResponses      = "Too many responses from query for unique nodes"
-	msgMutationHadNoUID      = "UID was not found in the mutation response"
-	msgBuilderWriting        = "invalid pred[%#v] or val[%#v]"
-	msgNilUID                = "*string was nil in response"
-)
-
 // defaults.
 const (
 	// templateDefault is used as a default setup for the Quirk progress bar.
 	// Note: This can be changed when setting up the client WithTemplate()
-	templateDefault = `{{ cyan "Inserting Nodes:" }} {{counters .}} {{ bar . "[" "=" (cycle . ">" ) " " "]"}} [{{etime . | cyan }}:{{rtime . | cyan }}] {{percent .}}`
+	_templateDefault = `{{ cyan "Inserting Nodes:" }} {{counters .}} {{ bar . "[" "=" (cycle . ">" ) " " "]"}} [{{etime . | cyan }}:{{rtime . | cyan }}] {{percent .}}`
 	// maxWorkers is used as a default for the maximum concurrent insert workers
 	// that are allowed to run when using a Multi operation.
-	maxWorkers = 50
+	_maxWorkers = 50
 	// blank identifier default.
 	// This is used when the data given doesn't contain any
 	// set predicate key in the Quirk client.
-	blankDefault = "data"
+	_blankDefault = "data"
 	// used as the default identifier when inserting a node.
 	// Any node that is inserted with Quirk should have this.
-	predicateKeyDefault = "name"
+	_predicateKeyDefault = "name"
 )
 
-const tagUnique tagOptions = "unique"
+const _tagUnique tagOptions = "unique"
 
 // rdf related constants for building the mutation.
 const (
-	rdfBase      = "%s <%s> \"%v\""
-	rdfReference = "%s <%s> <%v>"
-	rdfEnd       = " .\n"
+	_rdfBase      = "%s <%s> \"%v\""
+	_rdfReference = "%s <%s> <%v>"
+	_rdfEnd       = " .\n"
 )
 
 const (
@@ -43,27 +32,27 @@ const (
 	// type MyStruct struct {
 	// 		field string `quirk:"field"`
 	// }
-	quirkTag = "quirk"
+	_quirkTag = "quirk"
 	// Used to see if the query building process returned an empty query.
-	emptyQuery = "{}"
+	_emptyQuery = "{}"
 	// The beginning of the GraphQL+ query function signature.
-	queryfunc = "%s(func: eq(%s, %q), first: 1){uid}\n"
+	_queryfunc = "%s(func: eq(%s, %q), first: 1){uid}\n"
 )
 
 const (
 	// xsInit is used to indicate to Dgraph that we are explicitly
 	// using a certain datatype in the RDF.
-	xsInit = "^^"
+	_xsInit = "^^"
 
 	// XML Datatypes.
-	xsInt   = xsInit + "<xs:int>"
-	xsBool  = xsInit + "<xs:boolean>"
-	xsFloat = xsInit + "<xs:float>"
+	_xsInt   = _xsInit + "<xs:int>"
+	_xsBool  = _xsInit + "<xs:boolean>"
+	_xsFloat = _xsInit + "<xs:float>"
 
 	// unused at the moment.
-	xsString   = xsInit + "<xs:string>"
-	xsDateTime = xsInit + "<xs:date>"
+	_xsString   = _xsInit + "<xs:string>"
+	_xsDateTime = _xsInit + "<xs:date>"
 
 	// notifier to fix byte slice.
-	xsByte = xsInit + "<xs:byte>"
+	_xsByte = _xsInit + "<xs:byte>"
 )
