@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *upsertResponse {
@@ -31,6 +31,7 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 	var new bool
 	if uid == "" {
 		new = true
+		// Insert new node.
 		uidMap, err := setNode(ctx, txn, &builder, "_:"+identifier, dat)
 		if err != nil {
 			return &upsertResponse{
@@ -38,6 +39,7 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 				new: new,
 			}
 		}
+		// If the UID could not be found in the map.
 		if uid = uidMap[identifier]; uid == "" {
 			return &upsertResponse{
 				err: errors.New(msgMutationHadNoUID),
@@ -45,6 +47,7 @@ func (c *Client) tryUpsert(ctx context.Context, txn *dgo.Txn, dat *DupleNode) *u
 			}
 		}
 	} else {
+		// Update the found node.
 		_, err = setNode(ctx, txn, &builder, "<"+uid+">", dat)
 		if err != nil {
 			return &upsertResponse{

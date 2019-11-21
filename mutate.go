@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // mutate is used to upsert a single node using Quirk. All single mutate

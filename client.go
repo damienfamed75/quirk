@@ -5,24 +5,26 @@ import (
 	"sync"
 
 	"github.com/damienfamed75/yalp"
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // Client is used to store enough data and help manage
 // the logger when inserting nodes into Dgraph using a proper
 // upsert procedure.
 type Client struct {
-	predicateKey string
-	logger       yalp.Logger
-	template     string
+	predicateKey   string
+	logger         yalp.Logger
+	template       string
+	maxWorkerCount int
 }
 
 // setupClient returns the default states of a quirk client.
 func setupClient() *Client {
 	return &Client{
-		logger:       NewNilLogger(),
-		predicateKey: "name",
-		template:     templateDefault,
+		logger:         NewNilLogger(),
+		predicateKey:   predicateKeyDefault,
+		template:       templateDefault,
+		maxWorkerCount: maxWorkers,
 	}
 }
 
@@ -37,6 +39,16 @@ func NewClient(confs ...ClientConfiguration) *Client {
 	}
 
 	return q
+}
+
+// InsertMultiDynamicNode takes in a variadic number of interfaces as data.
+// This function was added, because converting everything to []interface{} in
+// someone's program proved to be inconvenient.
+func (c *Client) InsertMultiDynamicNode(ctx context.Context, dg *dgo.Dgraph, dat ...interface{}) (map[string]UID, error) {
+	uidMap := make(map[string]UID)
+	err := c.mutateMulti(ctx, dg, dat, uidMap, c.mutateSingleStruct)
+
+	return uidMap, err
 }
 
 // InsertNode takes in an Operation to determine if multiple nodes
@@ -67,8 +79,7 @@ func (c *Client) InsertNode(ctx context.Context, dg *dgo.Dgraph, o *Operation) (
 	case o.SetSingleDupleNode != nil:
 		_, err = c.mutateSingleDupleNode(ctx, dg, o.SetSingleDupleNode, uidMap, &sync.Mutex{})
 	case o.SetMultiDupleNode != nil:
-		// TODO work out some way to convert the slice to []interface{} without copying.
-		// This could possibly be using the "unsafe" package.
+		// To safely convert the []interface{} we loop through even if the process may be slow and painful.
 		tmp := make([]interface{}, len(o.SetMultiDupleNode))
 		for i, t := range o.SetMultiDupleNode {
 			tmp[i] = t

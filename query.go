@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dgraph-io/dgo"
+	"github.com/dgraph-io/dgo/v2"
 )
 
 // queryUID builds a query, executes it to find any unique marked predicates.

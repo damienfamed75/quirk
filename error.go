@@ -25,6 +25,16 @@ func (e *Error) Error() string {
 	)
 }
 
+// Unwrap is used to return any external errors.
+// This function was implemented for Go 1.13.
+func (e *Error) Unwrap() error {
+	if e.ExtErr != nil {
+		return e.ExtErr
+	}
+
+	return nil
+}
+
 // QueryError is used for functions in the query.go file.
 type QueryError struct {
 	ExtErr   error
@@ -52,6 +62,16 @@ func (e *QueryError) Error() (res string) {
 	return
 }
 
+// Unwrap is used to return any external errors.
+// This function was implemented for Go 1.13.
+func (e *QueryError) Unwrap() error {
+	if e.ExtErr != nil {
+		return e.ExtErr
+	}
+
+	return nil
+}
+
 // TransactionError is for when a transaction fails during a mutation.
 type TransactionError struct {
 	ExtErr   error
@@ -70,4 +90,14 @@ func (e *TransactionError) Error() string {
 	return fmt.Sprintf("%s:mutate_single.go: Msg[%s] RDF[%s]",
 		e.Function, e.Msg, e.RDF,
 	)
+}
+
+// Unwrap is used to return any external errors.
+// This function was implemented for Go 1.13.
+func (e *TransactionError) Unwrap() error {
+	if e.ExtErr != nil {
+		return e.ExtErr
+	}
+
+	return nil
 }

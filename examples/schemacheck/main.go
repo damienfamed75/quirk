@@ -14,6 +14,17 @@ import (
 
 var drop bool
 
+// Person is the structure to hold the node's data.
+// When using quirk you must have tags associated with your fields.
+// The first quirk parameter is the name of the predicate in Dgraph.
+// The second parameter (which always is "unique") specifies if this
+// field should be unique throughout the graph.
+type Person struct {
+	Name   string `quirk:"name"`
+	SSN    string `quirk:"ssn,unique"`
+	Policy string `quirk:"policy,unique"`
+}
+
 func main() {
 	flag.BoolVar(&drop, "d", false, "Drop-All before running example.")
 	flag.Parse()
@@ -39,7 +50,7 @@ func main() {
 	// Alter the schema to be equal to our schema variable.
 	err = dg.Alter(context.Background(), &api.Operation{Schema: `
 		name: string @index(hash) .
-		ssn: int @index(int) @upsert .
+		ssn: string @index(hash) @upsert .
 		policy: string @index(hash) @upsert .
 	`})
 	if err != nil {
@@ -53,14 +64,9 @@ func main() {
 		log.Fatalf("Failed to create Quirk Client [%v]\n", err)
 	}
 
-	person := make(map[string]interface{})
-	person["name"] = "John"
-	person["policy"] = "JKL"
-	person["ssn"] = 126
-
-	// Use the quirk client to insert a single node using a map.
+	// Use the quirk client to insert a single node.
 	uidMap, err := c.InsertNode(context.Background(), dg, &quirk.Operation{
-		SetDynamicMap: person})
+		SetSingleStruct: &Person{Name: "Damien", SSN: "126", Policy: "JKL"}})
 	if err != nil {
 		log.Fatalf("Error when inserting nodes [%v]\n", err)
 	}
@@ -73,6 +79,12 @@ func main() {
 	// you may set that when creating the client and using
 	// quirk.WithPredicateKey(predicateName string)
 	for k, v := range uidMap {
-		log.Printf("UIDMap: [%s] [%v]\n", k, v)
+		log.Printf("UIDMap: [%v] [%v]\n", k, v)
 	}
+
+	// t := dg.NewReadOnlyTxn()
+
+	// res, _ := t.Query(context.Background(), "{ me(func: has(uid)) { uid } }")
+
+	// log.Println(res.GetSchema())
 }

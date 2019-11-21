@@ -144,7 +144,7 @@ func checkType(val interface{}) string {
 	case float64: // float64 gets handled as a general float.
 		return xsFloat
 	case []byte:
-		return xsByte
+		return xsString // Changed from xs:byte to xs:string for Dgraphv.1.1.0
 	}
 
 	return ""

@@ -5,10 +5,10 @@ import (
 	"flag"
 	"log"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
 )
 
@@ -60,9 +60,9 @@ func main() {
 	dupleNode := &quirk.DupleNode{
 		Identifier: "John",
 		Duples: []quirk.Duple{
-			quirk.Duple{Predicate: "name", Object: "John"},
-			quirk.Duple{Predicate: "ssn", Object: "126", IsUnique: true},
-			quirk.Duple{Predicate: "policy", Object: "JKL", IsUnique: true},
+			{Predicate: "name", Object: "John"},
+			{Predicate: "ssn", Object: "126", IsUnique: true},
+			{Predicate: "policy", Object: "JKL", IsUnique: true},
 		},
 	}
 

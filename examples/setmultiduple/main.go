@@ -5,10 +5,10 @@ import (
 	"flag"
 	"log"
 
-	"github.com/damienfamed75/quirk"
+	"github.com/damienfamed75/quirk/v2"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v2"
+	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
 )
 
@@ -60,30 +60,30 @@ func main() {
 	// Create some data to insert into Dgraph.
 	dupleNodes := []*quirk.DupleNode{
 		// Damien or George shuold fail because they share the same Policy.
-		&quirk.DupleNode{Identifier: "Damien",
+		{Identifier: "Damien",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "Damien"},
-				quirk.Duple{Predicate: "ssn", Object: "123", IsUnique: true},
-				quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
+				{Predicate: "name", Object: "Damien"},
+				{Predicate: "ssn", Object: "123", IsUnique: true},
+				{Predicate: "policy", Object: "ABC", IsUnique: true},
 			}},
-		&quirk.DupleNode{Identifier: "George",
+		{Identifier: "George",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "George"},
-				quirk.Duple{Predicate: "ssn", Object: "124", IsUnique: true},
-				quirk.Duple{Predicate: "policy", Object: "ABC", IsUnique: true},
+				{Predicate: "name", Object: "George"},
+				{Predicate: "ssn", Object: "124", IsUnique: true},
+				{Predicate: "policy", Object: "ABC", IsUnique: true},
 			}},
 		// Bahram or Angad should fail because they share the same SSN.
-		&quirk.DupleNode{Identifier: "Bahram",
+		{Identifier: "Bahram",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "Bahram"},
-				quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
-				quirk.Duple{Predicate: "policy", Object: "DEF", IsUnique: true},
+				{Predicate: "name", Object: "Bahram"},
+				{Predicate: "ssn", Object: "125", IsUnique: true},
+				{Predicate: "policy", Object: "DEF", IsUnique: true},
 			}},
-		&quirk.DupleNode{Identifier: "Angad",
+		{Identifier: "Angad",
 			Duples: []quirk.Duple{
-				quirk.Duple{Predicate: "name", Object: "Angad"},
-				quirk.Duple{Predicate: "ssn", Object: "125", IsUnique: true},
-				quirk.Duple{Predicate: "policy", Object: "GHI", IsUnique: true},
+				{Predicate: "name", Object: "Angad"},
+				{Predicate: "ssn", Object: "125", IsUnique: true},
+				{Predicate: "policy", Object: "GHI", IsUnique: true},
 			}},
 	}
 

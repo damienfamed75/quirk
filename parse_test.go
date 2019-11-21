@@ -125,7 +125,7 @@ func TestCheckType(t *testing.T) {
 			b := checkType(a)
 
 			g.Assert(b).
-				Equal(xsByte)
+				Equal(xsString)
 		})
 	})
 }
